@@ -1,0 +1,37 @@
+h3 {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+#controls {
+    min-height: 100px;
+    background-color: antiquewhite;
+    border: solid 1px #ccc;
+    padding: 5px;
+}
+
+#container {
+    margin: 0;
+    width: 100%;
+    min-height: 100%;
+    text-align: center;
+    background-color: aliceblue;
+}
+
+#time-span {
+    font-family: 'Courier New', Courier, monospace;
+    padding: 5px;
+}
+
+#tap-span {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: large;
+    padding: 10px;
+    border: solid 1px #ccc;
+    background-color: antiquewhite;
+    margin-top: 10px;
+}
+
+button {
+    margin-left: 5px;
+    padding: 10px 10px;
+}

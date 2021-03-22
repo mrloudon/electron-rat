@@ -1,0 +1,40 @@
+
+
+.coords {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    margin: 10px;
+}
+
+canvas {
+    background-color: white;
+    margin-top: 10px;
+}
+
+#controls {
+    width: 100%;
+    min-height: 100px;
+    background-color: antiquewhite;
+}
+
+#container {
+    margin: 0;
+    width: 100%;
+    min-height: 100%;
+    text-align: center;
+    background-color: aliceblue;
+}
+
+#time-span {
+    font-family: 'Courier New', Courier, monospace;
+}
+
+#status-span {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    margin: 10px;
+    font-size: large;
+}
+
+button {
+    margin-left: 5px;
+    padding: 10px 10px;
+}

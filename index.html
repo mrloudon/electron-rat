@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+   <!--  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self';">
+    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'"> -->
+    <title>Rat Trainer</title>
+    <link rel="stylesheet" href="electron.css">
+</head>
+
+<body>
+    <h3>Rat Trainer</h3>
+    <div id="controls">
+        <h2 id="time-span">00:00:00</h2>
+        <button type="button" id="stop-btn">Stop</button>
+        <button type="button" id="start-btn">Start</button>
+        <button type="button" id="show-btn">Show</button>
+        <button type="button" id="hide-btn">Hide</button>
+        <button type="button" id="black-btn">Black</button>
+        <button type="button" id="white-btn">White</button>
+        <button type="button" id="square-btn">Square</button>
+        <button type="button" id="circle-btn">Circle</button>
+        <button type="button" id="star-btn">Star</button>
+    </div>
+    <div id="tap-span">
+        No data.
+    </div>
+    <script src="./renderer.js"></script>
+</body>
+
+</html>

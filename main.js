@@ -8,7 +8,10 @@ const IP = "192.168.0.3";
 const server = express();
 
 const status = {
-    state: "running state"
+    currentShape: "circle",
+    backgroundColor: "white",
+    state: "running state",
+    stopAnimation: true
 };
 
 let mainWindow;
@@ -16,13 +19,11 @@ let mainWindow;
 function createWindow() {
     // Create the browser window.
         mainWindow = new BrowserWindow({
-        width: 800,
+        width: 1024,
         height: 600,
         fullscreen: false,
         show: false,
         backgroundColor: "#eee",
-        // Don"t show the window until it"s ready, this prevents any white flickering
-        // frame removes menubar and buttons. window.setMenu(null) remove menu only.
         frame: true,
         webPreferences: {
             preload: path.join(__dirname, "preload.js"),
@@ -31,7 +32,6 @@ function createWindow() {
         }
     });
 
-    // and load the index.html of the app.
     mainWindow.loadFile("index.html");
 
     mainWindow.once("ready-to-show", () => {
@@ -84,6 +84,16 @@ const serverInstance = server.listen(PORT, function () {
     console.log("Example app listening at http://%s:%s", host, port);
 });
 
-ipcMain.on("black", () => status.state = "black");
+ipcMain.on("black", () => status.backgroundColor = "black");
 
-ipcMain.on("white", () => status.state = "white");
+ipcMain.on("white", () => status.backgroundColor = "white");
+
+ipcMain.on("circle", () => status.currentShape = "circle");
+
+ipcMain.on("square", () => status.currentShape = "square");
+
+ipcMain.on("star", () => status.currentShape = "star");
+
+ipcMain.on("startAnimation", () => status.stopAnimation = false);
+
+ipcMain.on("stopAnimation", () => status.stopAnimation = true);

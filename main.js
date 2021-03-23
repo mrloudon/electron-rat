@@ -1,23 +1,25 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow, ipcMain } = require("electron");
+//const { response } = require("express");
 const express = require("express");
 const path = require("path");
 
-const PORT = 8080;
-const IP = "192.168.0.3";
-const server = express();
+const PORT = 80;
+const HOST = "192.168.4.2";
+
+const expressApp = express();
 
 const status = {
+    state: "Idle",
     currentShape: "circle",
     backgroundColor: "white",
-    state: "running state",
+    hidden: true,
     stopAnimation: true
 };
 
 let mainWindow;
 
 function createWindow() {
-    // Create the browser window.
         mainWindow = new BrowserWindow({
         width: 1024,
         height: 600,
@@ -64,36 +66,28 @@ app.on("window-all-closed", function () {
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.
 
-server.use(express.static("public"));
+expressApp.use(express.static("public"));
 
-server.get("/tap", function(req, res){
+expressApp.get("/tap", function(req, res){
     console.log(`X: ${req.query.x}, Y: ${req.query.y}, Success: ${req.query.hit}, Time: ${req.query.t}, Stimulus: ${req.query.stim}`);
     res.send("OK");
     mainWindow.webContents.send("tap", `X: ${req.query.x}, Y: ${req.query.y}, Success: ${req.query.hit}, Time: ${req.query.t}, Stimulus: ${req.query.stim}`);
 });
 
-server.get("/status", function(req, res){
+expressApp.get("/status", function(req, res){
     res.send(status);
 });
 
-const serverInstance = server.listen(PORT, function () {
-    //const host = server.address().address;
-    const host = IP;
-    const port = serverInstance.address().port;
-
-    console.log("Example app listening at http://%s:%s", host, port);
+expressApp.listen(PORT, HOST, function () {
+    console.log("Rat trainer app listening at http://%s:%s", HOST, PORT);
 });
 
 ipcMain.on("black", () => status.backgroundColor = "black");
-
 ipcMain.on("white", () => status.backgroundColor = "white");
-
 ipcMain.on("circle", () => status.currentShape = "circle");
-
 ipcMain.on("square", () => status.currentShape = "square");
-
 ipcMain.on("star", () => status.currentShape = "star");
-
 ipcMain.on("startAnimation", () => status.stopAnimation = false);
-
 ipcMain.on("stopAnimation", () => status.stopAnimation = true);
+ipcMain.on("show", () => status.hidden = false);
+ipcMain.on("hide", () => status.hidden = true);

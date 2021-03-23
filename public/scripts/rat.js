@@ -1,13 +1,9 @@
 /* global Utility */
 
 const Rat = (function () {
-
-    const MILLIS_SEC = 1000;
-    const MILLIS_MIN = 1000 * 60;
-    const MILLIS_HR = 60 * MILLIS_MIN;
     const PX_PER_MM = 600 / 93;
     const CM_1 = 10 * PX_PER_MM;
-    //const MARGIN = 0;
+    const ROUTER_URL = "http://192.168.4.1";
 
     const Star = {
 
@@ -151,24 +147,56 @@ const Rat = (function () {
 
 
     function run() {
-        //const coordsFB = document.querySelector("h3.coords");
-        const stopBtn = document.getElementById("stop-btn");
-        const startBtn = document.getElementById("start-btn");
-        const whiteBtn = document.getElementById("white-btn");
-        const blackBtn = document.getElementById("black-btn");
-        const showBtn = document.getElementById("show-btn");
-        const hideBtn = document.getElementById("hide-btn");
-        const squareBtn = document.getElementById("square-btn");
-        const circleBtn = document.getElementById("circle-btn");
-        const starBtn = document.getElementById("star-btn");
-        const timeSpan = document.getElementById("time-span");
         const statusSpan = document.getElementById("status-span");
         const canvas = document.getElementById("c");
         const context = canvas.getContext("2d");
         const position = { x: 200, y: 250 };
         let minX, maxX, direction;
-        let stopAnimation = false;
+        let stopAnimation = true;
         let startTime, stimulusType, shape;
+        let keepTrying = true;
+        let backgroundColor = "white";
+        let currentShape = "circle";
+        let state = "Idle";
+        let hidden = true;
+
+
+        function updateStatus(status) {
+            if(status.hidden !== hidden){
+                hidden = status.hidden;
+                if(hidden){
+                    shape && shape.clear();
+                }
+                else{
+                    shape && shape.draw();
+                }
+            }
+            if (status.backgroundColor !== backgroundColor) {
+                backgroundColor = status.backgroundColor;
+                canvas.style.backgroundColor = backgroundColor;
+            }
+            if (status.currentShape !== currentShape) {
+                currentShape = status.currentShape;
+                switch (currentShape) {
+                    case "square": selectSquare();
+                        break;
+                    case "circle": selectCircle();
+                        break;
+                    case "star": selectStar();
+                        break;
+                }
+            }
+            if (status.stopAnimation !== stopAnimation) {
+                stopAnimation = status.stopAnimation;
+                if (!stopAnimation) {
+                    window.requestAnimationFrame(animationLoop);
+                }
+            }
+            if(status.state !== state){
+                state = status.state;
+                statusSpan.innerHTML = state;
+            }
+        }
 
         async function onClick(e) {
             const rect = e.target.getBoundingClientRect();
@@ -176,7 +204,13 @@ const Rat = (function () {
             const y = Math.round(e.clientY - rect.top);  //y position within the element.
             const targetHit = shape.inside({ x, y });
             const resp = await fetch(`/tap?x=${x}&y=${y}&hit=${targetHit}&t=${Date.now() - startTime}&stim=${stimulusType}`);
-            console.log(resp.statusText);
+            if (targetHit) {
+                await fetch(`${ROUTER_URL}/b`);
+            }
+            else {
+                await fetch(`${ROUTER_URL}/a`);
+            }
+            statusSpan.innerHTML = resp.statusText;
         }
 
         function animationLoop() {
@@ -196,60 +230,6 @@ const Rat = (function () {
         }
 
         function attachListeners() {
-            stopBtn.addEventListener("click", () => stopAnimation = true);
-            startBtn.addEventListener("click", () => {
-                stopAnimation = false;
-                window.requestAnimationFrame(animationLoop);
-            });
-            whiteBtn.addEventListener("click", () => canvas.style.backgroundColor = "white");
-            blackBtn.addEventListener("click", () => canvas.style.backgroundColor = "black");
-            showBtn.addEventListener("click", () => shape && shape.draw());
-            hideBtn.addEventListener("click", () => shape && shape.clear());
-            squareBtn.addEventListener("click", () => {
-                let temp = stopAnimation;
-                stopAnimation = true;
-                window.requestAnimationFrame(() => {
-                    shape && shape.clear();
-                    shape = Square;
-                    stimulusType = "square";
-                    shape.setPosition(position);
-                    shape.draw();
-                    stopAnimation = temp;
-                    if (!stopAnimation) {
-                        window.requestAnimationFrame(animationLoop);
-                    }
-                });
-            });
-            circleBtn.addEventListener("click", () => {
-                let temp = stopAnimation;
-                stopAnimation = true;
-                window.requestAnimationFrame(() => {
-                    shape && shape.clear();
-                    shape = Circle;
-                    stimulusType = "circle";
-                    shape.setPosition(position);
-                    shape.draw();
-                    stopAnimation = temp;
-                    if (!stopAnimation) {
-                        window.requestAnimationFrame(animationLoop);
-                    }
-                });
-            });
-            starBtn.addEventListener("click", () => {
-                let temp = stopAnimation;
-                stopAnimation = true;
-                window.requestAnimationFrame(() => {
-                    shape && shape.clear();
-                    shape = Star;
-                    stimulusType = "star";
-                    shape.setPosition(position);
-                    shape.draw();
-                    stopAnimation = temp;
-                    if (!stopAnimation) {
-                        window.requestAnimationFrame(animationLoop);
-                    }
-                });
-            });
             canvas.addEventListener("mousedown", onClick);
         }
 
@@ -263,40 +243,78 @@ const Rat = (function () {
         Circle.initialise(context, position, CM_1, "green");
         Square.initialise(context, position, CM_1 * 2, "green");
         Star.initialise(context, position, 7, CM_1 * 1.25, CM_1 * .75, "green");
+        canvas.style.backgroundColor = backgroundColor;
 
         shape = Circle;
         stimulusType = "circle";
-        shape.draw();
 
         direction = 4;
-        requestAnimationFrame(animationLoop);
 
         startTime = Date.now();
         setInterval(() => {
-            let diff = Date.now() - startTime;
-            let hours = Math.floor(diff / MILLIS_HR).toString();
-            diff %= MILLIS_HR;
-            let mins = Math.floor(diff / MILLIS_MIN).toString();
-            diff %= MILLIS_MIN;
-            let secs = Math.floor(diff / MILLIS_SEC).toString();
-            diff %= MILLIS_SEC;
-            if (hours.length < 2) {
-                hours = "0" + hours;
-            }
-            if (mins.length < 2) {
-                mins = "0" + mins;
-            }
-            if (secs.length < 2) {
-                secs = "0" + secs;
-            }
-            timeSpan.innerHTML = `${hours}:${mins}:${secs}`;
+            if (navigator.onLine && keepTrying) {
                 fetch("/status")
-                .then(response => response.json())
-                .then(data => {
-                    statusSpan.innerHTML = `Status: <strong>${data.state}</strong>`;
-                })
-                .catch(e => console.log(e.message));
-        }, 1000);
+                    .then(response => {
+                        return response.json();
+                    })
+                    .then(data => {
+                        updateStatus(data);
+                    })
+                    .catch(e => {
+                        console.log("There was a problem with fetch: ", e);
+                        statusSpan.innerHTML = `<strong>The server is down! Check and reload.</strong>`;
+                        keepTrying = false;
+                    });
+            }
+        }, 500);
+
+        function selectStar() {
+            let temp = stopAnimation;
+            stopAnimation = true;
+            window.requestAnimationFrame(() => {
+                shape && shape.clear();
+                shape = Star;
+                stimulusType = "star";
+                shape.setPosition(position);
+                shape.draw();
+                stopAnimation = temp;
+                if (!stopAnimation) {
+                    window.requestAnimationFrame(animationLoop);
+                }
+            });
+        }
+
+        function selectCircle() {
+            let temp = stopAnimation;
+            stopAnimation = true;
+            window.requestAnimationFrame(() => {
+                shape && shape.clear();
+                shape = Circle;
+                stimulusType = "circle";
+                shape.setPosition(position);
+                shape.draw();
+                stopAnimation = temp;
+                if (!stopAnimation) {
+                    window.requestAnimationFrame(animationLoop);
+                }
+            });
+        }
+
+        function selectSquare() {
+            let temp = stopAnimation;
+            stopAnimation = true;
+            window.requestAnimationFrame(() => {
+                shape && shape.clear();
+                shape = Square;
+                stimulusType = "square";
+                shape.setPosition(position);
+                shape.draw();
+                stopAnimation = temp;
+                if (!stopAnimation) {
+                    window.requestAnimationFrame(animationLoop);
+                }
+            });
+        }
     }
 
     return { run };

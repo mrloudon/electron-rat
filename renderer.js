@@ -18,6 +18,13 @@ require("electron").ipcRenderer.on("tap", (event, message) => {
     console.log(message);
 });
 
+function showBtnClick(){
+    ipc.send("show");
+}
+
+function hideBtnClick(){
+    ipc.send("hide");
+}
 
 function blackBtnClick(){
     ipc.send("black");
@@ -25,6 +32,26 @@ function blackBtnClick(){
 
 function whiteBtnClick(){
     ipc.send("white");
+}
+
+function circleBtnClick(){
+    ipc.send("circle");
+}
+
+function squareBtnClick(){
+    ipc.send("square");
+}
+
+function starBtnClick(){
+    ipc.send("star");
+}
+
+function startAnimationBtnClick(){
+    ipc.send("startAnimation");
+}
+
+function stopAnimationBtnClick(){
+    ipc.send("stopAnimation");
 }
 
 function stopBtnClick(){
@@ -63,8 +90,15 @@ function startBtnClick(){
 function attachListeners(){
     document.getElementById("start-btn").addEventListener("click", startBtnClick);
     document.getElementById("stop-btn").addEventListener("click", stopBtnClick);
+    document.getElementById("show-btn").addEventListener("click", showBtnClick);
+    document.getElementById("hide-btn").addEventListener("click", hideBtnClick);
     document.getElementById("black-btn").addEventListener("click", blackBtnClick);
     document.getElementById("white-btn").addEventListener("click", whiteBtnClick);
+    document.getElementById("circle-btn").addEventListener("click", circleBtnClick);
+    document.getElementById("square-btn").addEventListener("click", squareBtnClick);
+    document.getElementById("star-btn").addEventListener("click", starBtnClick);
+    document.getElementById("start-animation-btn").addEventListener("click", startAnimationBtnClick);
+    document.getElementById("stop-animation-btn").addEventListener("click", stopAnimationBtnClick);
 }
 
 attachListeners();

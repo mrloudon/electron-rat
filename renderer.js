@@ -11,12 +11,25 @@ const MILLIS_HR = 60 * MILLIS_MIN;
 let startTime, clockTimer;
 
 const timeSpan = document.getElementById("time-span");
+const timeTD = document.getElementById("time-td");
+const xTD = document.getElementById("x-td");
+const yTD = document.getElementById("y-td");
+const successTD = document.getElementById("success-td");
+const stimulusTD = document.getElementById("stimulus-td");
+const pingSpan = document.getElementById("ping-span");
 const ipc = require("electron").ipcRenderer;
 
-require("electron").ipcRenderer.on("tap", (event, message) => {
-    document.getElementById("tap-span").innerHTML = message;
-    console.log(message);
+ipc.on("tap", (event, data) => {
+    timeTD.innerHTML = data.time.toString();
+    xTD.innerHTML = data.x.toString();
+    yTD.innerHTML = data.y.toString();
+    successTD.innerHTML = data.success;
+    stimulusTD.innerHTML = data.stimulus;
 });
+
+ipc.on("ping", (event, data) => {
+    pingSpan.innerHTML = data.toString();
+} );
 
 function showBtnClick(){
     ipc.send("show");

@@ -17,10 +17,10 @@ const status = {
     stopAnimation: true
 };
 
-let mainWindow;
+let mainWindow, nPings = 0;
 
 function createWindow() {
-        mainWindow = new BrowserWindow({
+    mainWindow = new BrowserWindow({
         width: 1024,
         height: 600,
         fullscreen: false,
@@ -40,7 +40,7 @@ function createWindow() {
         mainWindow.setMenuBarVisibility(false);
         mainWindow.show();
     });
-  
+
 }
 
 // This method will be called when Electron has finished
@@ -68,14 +68,27 @@ app.on("window-all-closed", function () {
 
 expressApp.use(express.static("public"));
 
-expressApp.get("/tap", function(req, res){
+expressApp.get("/tap", function (req, res) {
+    res.send("Tap OK");
+    mainWindow.webContents.send("tap", {
+        x: req.query.x,
+        y: req.query.y,
+        time: req.query.t,
+        stimulus: req.query.stim,
+        success: req.query.hit
+    });
     console.log(`X: ${req.query.x}, Y: ${req.query.y}, Success: ${req.query.hit}, Time: ${req.query.t}, Stimulus: ${req.query.stim}`);
-    res.send("OK");
-    mainWindow.webContents.send("tap", `X: ${req.query.x}, Y: ${req.query.y}, Success: ${req.query.hit}, Time: ${req.query.t}, Stimulus: ${req.query.stim}`);
 });
 
-expressApp.get("/status", function(req, res){
+expressApp.get("/status", function (req, res) {
     res.send(status);
+    nPings++;
+    mainWindow.webContents.send("ping", nPings);
+});
+
+expressApp.get("/reload", function(req, res){
+    nPings = 0;
+    res.send("Reload OK");
 });
 
 expressApp.listen(PORT, HOST, function () {

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-   <!--  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self';">
+    <!--  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self';">
     <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'"> -->
     <title>Rat Trainer</title>
     <link rel="stylesheet" href="electron.css">
@@ -26,9 +26,23 @@
         <button type="button" id="start-animation-btn">Start Animation</button>
         <button type="button" id="stop-animation-btn">Stop Animation</button>
     </div>
-    <div id="tap-span">
-        No data.
-    </div>
+    <table>
+        <tr>
+            <th>Time</th>
+            <th>X</th>
+            <th>Y</th>
+            <th>Success</th>
+            <th>Stimulus</th>
+        </tr>
+        <tr>
+            <td id="time-td">&#8212;</td>
+            <td id="x-td">&#8212;</td>
+            <td id="y-td">&#8212;</td>
+            <td id="success-td">&#8212;</td>
+            <td id="stimulus-td">&#8212;</td>
+        </tr>
+    </table>
+    <h4>Pings: <span id="ping-span">0</span></h4>
     <script src="./renderer.js"></script>
 </body>
 

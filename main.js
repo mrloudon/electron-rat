@@ -1,11 +1,11 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow, ipcMain } = require("electron");
-//const { response } = require("express");
+// Need networkInterfaces to figure out the host IP
+const { networkInterfaces } = require("os");
 const express = require("express");
 const path = require("path");
-
 const PORT = 80;
-const HOST = "192.168.4.2";
+let host;
 
 const expressApp = express();
 
@@ -18,6 +18,23 @@ const status = {
 };
 
 let mainWindow, nPings = 0;
+
+function getHostIP() {
+    const nets = networkInterfaces();
+    const IP_REG_EXP = /192\.168\.4\.[2-9]/;
+
+    for (const name of Object.keys(nets)) {
+        for (const net of nets[name]) {
+            // Skip over non-IPv4 and internal (i.e. 127.0.0.1) addresses
+            if (net.family === 'IPv4' && !net.internal) {
+                if (IP_REG_EXP.test(net.address)) {
+                    return net.address;
+                }
+            }
+        }
+    }
+    return "127.0.0.1";
+}
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -86,14 +103,17 @@ expressApp.get("/status", function (req, res) {
     mainWindow.webContents.send("ping", nPings);
 });
 
-expressApp.get("/reload", function(req, res){
+expressApp.get("/reload", function (req, res) {
     nPings = 0;
     res.send("Reload OK");
 });
 
-expressApp.listen(PORT, HOST, function () {
-    console.log("Rat trainer app listening at http://%s:%s", HOST, PORT);
-});
+function bindServer(){
+    host = getHostIP();
+    expressApp.listen(PORT, host, function () {
+        console.log("Rat trainer app listening at http://%s:%s", host, PORT);
+    });
+}
 
 ipcMain.on("black", () => status.backgroundColor = "black");
 ipcMain.on("white", () => status.backgroundColor = "white");
@@ -104,3 +124,7 @@ ipcMain.on("startAnimation", () => status.stopAnimation = false);
 ipcMain.on("stopAnimation", () => status.stopAnimation = true);
 ipcMain.on("show", () => status.hidden = false);
 ipcMain.on("hide", () => status.hidden = true);
+
+ipcMain.handle("host", async () => host);
+
+bindServer();

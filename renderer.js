@@ -17,6 +17,7 @@ const yTD = document.getElementById("y-td");
 const successTD = document.getElementById("success-td");
 const stimulusTD = document.getElementById("stimulus-td");
 const pingSpan = document.getElementById("ping-span");
+const hostSpan = document.getElementById("host-span");
 const ipc = require("electron").ipcRenderer;
 
 ipc.on("tap", (event, data) => {
@@ -29,53 +30,53 @@ ipc.on("tap", (event, data) => {
 
 ipc.on("ping", (event, data) => {
     pingSpan.innerHTML = data.toString();
-} );
+});
 
-function showBtnClick(){
+function showBtnClick() {
     ipc.send("show");
 }
 
-function hideBtnClick(){
+function hideBtnClick() {
     ipc.send("hide");
 }
 
-function blackBtnClick(){
+function blackBtnClick() {
     ipc.send("black");
 }
 
-function whiteBtnClick(){
+function whiteBtnClick() {
     ipc.send("white");
 }
 
-function circleBtnClick(){
+function circleBtnClick() {
     ipc.send("circle");
 }
 
-function squareBtnClick(){
+function squareBtnClick() {
     ipc.send("square");
 }
 
-function starBtnClick(){
+function starBtnClick() {
     ipc.send("star");
 }
 
-function startAnimationBtnClick(){
+function startAnimationBtnClick() {
     ipc.send("startAnimation");
 }
 
-function stopAnimationBtnClick(){
+function stopAnimationBtnClick() {
     ipc.send("stopAnimation");
 }
 
-function stopBtnClick(){
-    if(clockTimer){
+function stopBtnClick() {
+    if (clockTimer) {
         window.clearInterval(clockTimer);
         clockTimer = null;
     }
 }
 
-function startBtnClick(){
-    if(clockTimer){
+function startBtnClick() {
+    if (clockTimer) {
         window.clearInterval(clockTimer);
     }
     startTime = Date.now();
@@ -100,7 +101,7 @@ function startBtnClick(){
     }, 1000);
 }
 
-function attachListeners(){
+function attachListeners() {
     document.getElementById("start-btn").addEventListener("click", startBtnClick);
     document.getElementById("stop-btn").addEventListener("click", stopBtnClick);
     document.getElementById("show-btn").addEventListener("click", showBtnClick);
@@ -115,3 +116,5 @@ function attachListeners(){
 }
 
 attachListeners();
+ipc.invoke("host")
+    .then(result => hostSpan.innerHTML = result);

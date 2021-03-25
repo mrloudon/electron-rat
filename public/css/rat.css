@@ -6,6 +6,7 @@
 canvas {
     background-color: white;
     margin-top: 10px;
+    touch-action: manipulation;
 }
 
 #controls {

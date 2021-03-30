@@ -6,18 +6,11 @@ const express = require("express");
 const path = require("path");
 const PORT = 80;
 let host;
+let clients = [];
 
 const expressApp = express();
 
-const status = {
-    state: "Idle",
-    currentShape: "circle",
-    backgroundColor: "white",
-    hidden: true,
-    stopAnimation: true
-};
-
-let mainWindow, nPings = 0;
+let mainWindow;
 
 function getHostIP() {
     const nets = networkInterfaces();
@@ -77,6 +70,11 @@ app.whenReady().then(() => {
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on("window-all-closed", function () {
+    clients.forEach(client => {
+        console.log("Closing:", client.id);
+        client.res.write(`data:close\n\n`);
+        client.res.end();
+    });
     if (process.platform !== "darwin") app.quit();
 });
 
@@ -84,6 +82,30 @@ app.on("window-all-closed", function () {
 // code. You can also put them in separate files and require them here.
 
 expressApp.use(express.static("public"));
+
+expressApp.get("/events", async function (req, res) {
+    console.log('Got /events');
+    res.set({
+        "Content-Type": "text/event-stream",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-cache"
+    });
+    res.flushHeaders();
+    res.write('retry: 10000\n\n');
+
+    const clientId = Date.now();
+    const newClient = {
+        id: clientId,
+        res
+    }
+    clients.push(newClient);
+    console.log("Added new client", clientId);
+
+    req.on("close", () => {
+        console.log(`${clientId} Connection closed`);
+        clients = clients.filter(client => client.id !== clientId);
+    });
+});
 
 expressApp.get("/tap", function (req, res) {
     res.send("Tap OK");
@@ -97,33 +119,53 @@ expressApp.get("/tap", function (req, res) {
     console.log(`X: ${req.query.x}, Y: ${req.query.y}, Success: ${req.query.hit}, Time: ${req.query.t}, Stimulus: ${req.query.stim}`);
 });
 
-expressApp.get("/status", function (req, res) {
-    res.send(status);
-    nPings++;
-    mainWindow.webContents.send("ping", nPings);
-});
 
 expressApp.get("/reload", function (req, res) {
-    nPings = 0;
     res.send("Reload OK");
 });
 
-function bindServer(){
+function bindServer() {
     host = getHostIP();
     expressApp.listen(PORT, host, function () {
         console.log("Rat trainer app listening at http://%s:%s", host, PORT);
     });
 }
 
-ipcMain.on("black", () => status.backgroundColor = "black");
-ipcMain.on("white", () => status.backgroundColor = "white");
-ipcMain.on("circle", () => status.currentShape = "circle");
-ipcMain.on("square", () => status.currentShape = "square");
-ipcMain.on("star", () => status.currentShape = "star");
-ipcMain.on("startAnimation", () => status.stopAnimation = false);
-ipcMain.on("stopAnimation", () => status.stopAnimation = true);
-ipcMain.on("show", () => status.hidden = false);
-ipcMain.on("hide", () => status.hidden = true);
+function sendCommand(command) {
+    clients.forEach(client => {
+        console.log("Sending to:", client.id);
+        client.res.write(`data: ${command}\n\n`);
+    });
+}
+
+ipcMain.on("black", () => {
+    sendCommand("black");
+});
+
+ipcMain.on("white", () => {
+    sendCommand("white");
+});
+ipcMain.on("circle", () => {
+    sendCommand("circle");
+});
+ipcMain.on("square", () => {
+    sendCommand("square");
+});
+ipcMain.on("star", () => {
+    sendCommand("star");
+});
+ipcMain.on("startAnimation", () => {
+    sendCommand("startAnimation");
+});
+ipcMain.on("stopAnimation", () => {
+    sendCommand("stopAnimation");
+});
+ipcMain.on("show", () => {
+    sendCommand("show");
+});
+ipcMain.on("hide", () => {
+    sendCommand("hide");
+});
 
 ipcMain.handle("host", async () => host);
 

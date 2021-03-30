@@ -16,8 +16,10 @@ const xTD = document.getElementById("x-td");
 const yTD = document.getElementById("y-td");
 const successTD = document.getElementById("success-td");
 const stimulusTD = document.getElementById("stimulus-td");
-const pingSpan = document.getElementById("ping-span");
 const hostSpan = document.getElementById("host-span");
+const shapeBtns = document.querySelectorAll(".shape-btn");
+const colorBtns = document.querySelectorAll(".color-btn");
+const sizeBtns = document.querySelectorAll(".size-btn");
 const ipc = require("electron").ipcRenderer;
 
 ipc.on("tap", (event, data) => {
@@ -26,10 +28,6 @@ ipc.on("tap", (event, data) => {
     yTD.innerHTML = data.y.toString();
     successTD.innerHTML = data.success;
     stimulusTD.innerHTML = data.stimulus;
-});
-
-ipc.on("ping", (event, data) => {
-    pingSpan.innerHTML = data.toString();
 });
 
 function showBtnClick() {
@@ -46,18 +44,6 @@ function blackBtnClick() {
 
 function whiteBtnClick() {
     ipc.send("white");
-}
-
-function circleBtnClick() {
-    ipc.send("circle");
-}
-
-function squareBtnClick() {
-    ipc.send("square");
-}
-
-function starBtnClick() {
-    ipc.send("star");
 }
 
 function startAnimationBtnClick() {
@@ -101,6 +87,44 @@ function startBtnClick() {
     }, 1000);
 }
 
+function shapeBtnClick(event) {
+    for (const btn of shapeBtns) {
+        btn.style.backgroundColor = "rgb(239,239,239)";
+    }
+    event.currentTarget.style.backgroundColor = "#FCF6CF";
+    switch (event.currentTarget.innerText) {
+        case "Square": ipc.send("square");
+            break;
+        case "Circle": ipc.send("circle");
+            break;
+        case "Star": ipc.send("star");
+            break;
+    }
+}
+
+function colorBtnClick(event) {
+    for (const btn of colorBtns) {
+        btn.style.backgroundColor = "rgb(239,239,239)";
+    }
+    event.currentTarget.style.backgroundColor = "#FCF6CF";
+    switch (event.currentTarget.innerText) {
+        case "Green": ipc.send("green");
+            break;
+        case "Yellow": ipc.send("yellow");
+            break;
+        case "Blue": ipc.send("blue");
+            break;
+    }
+}
+
+function sizeBtnClick(event) {
+    for (const btn of sizeBtns) {
+        btn.style.backgroundColor = "rgb(239,239,239)";
+    }
+    event.currentTarget.style.backgroundColor = "#FCF6CF";
+    console.log(event.currentTarget.innerHTML);
+}
+
 function attachListeners() {
     document.getElementById("start-btn").addEventListener("click", startBtnClick);
     document.getElementById("stop-btn").addEventListener("click", stopBtnClick);
@@ -108,11 +132,17 @@ function attachListeners() {
     document.getElementById("hide-btn").addEventListener("click", hideBtnClick);
     document.getElementById("black-btn").addEventListener("click", blackBtnClick);
     document.getElementById("white-btn").addEventListener("click", whiteBtnClick);
-    document.getElementById("circle-btn").addEventListener("click", circleBtnClick);
-    document.getElementById("square-btn").addEventListener("click", squareBtnClick);
-    document.getElementById("star-btn").addEventListener("click", starBtnClick);
     document.getElementById("start-animation-btn").addEventListener("click", startAnimationBtnClick);
     document.getElementById("stop-animation-btn").addEventListener("click", stopAnimationBtnClick);
+    for (const btn of shapeBtns) {
+        btn.addEventListener("click", shapeBtnClick);
+    }
+    for (const btn of colorBtns) {
+        btn.addEventListener("click", colorBtnClick);
+    }
+    for (const btn of sizeBtns) {
+        btn.addEventListener("click", sizeBtnClick);
+    }
 }
 
 attachListeners();

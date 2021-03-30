@@ -148,16 +148,15 @@ const Rat = (function () {
 
     function run() {
         const statusSpan = document.getElementById("status-span");
-        const haltBtn = document.getElementById("halt-btn");
         const canvas = document.getElementById("c");
         const context = canvas.getContext("2d");
         const position = { x: 200, y: 250 };
         let minX, maxX, direction;
         let stopAnimation = true;
-        let startTime, stimulusType, shape, pingTimer;
-        let keepTrying = true;
+        let startTime, stimulusType;
         let backgroundColor = "white";
         let currentShape = "circle";
+        let shape;
         let state = "Idle";
         let hidden = true;
 
@@ -246,11 +245,6 @@ const Rat = (function () {
 
         function attachListeners() {
             canvas.addEventListener("mousedown", onClick);
-            haltBtn.addEventListener("click", () => {
-                pingTimer && window.clearInterval(pingTimer);
-                haltBtn.disabled = true;
-                statusSpan.innerHTML = "Communication halted";
-            });
         }
 
 
@@ -282,29 +276,34 @@ const Rat = (function () {
                 .catch(e => {
                     console.log("There was a problem with fetch: ", e);
                     statusSpan.innerHTML = `<strong>The server is down! Check and reload.</strong>`;
-                    keepTrying = false;
                 });
 
             startTime = Date.now();
-            pingTimer = setInterval(() => {
-                if (navigator.onLine && keepTrying) {
-                    fetch("/status")
-                        .then(response => {
-                            return response.json();
-                        })
-                        .then(data => {
-                            updateStatus(data);
-                        })
-                        .catch(e => {
-                            console.log("There was a problem with fetch: ", e);
-                            statusSpan.innerHTML = `<strong>The server is down! Check and reload.</strong>`;
-                            keepTrying = false;
-                        });
-                }
-            }, 500);
         }
 
         initialise();
+
+        const source = new EventSource("/events");
+
+        source.addEventListener("open", () => {
+            console.log("The connection has been established");
+        });
+
+        source.addEventListener("message", message => {
+    /*         if(message.data === "close"){
+                console.log("Closing!");
+                source.close();
+                statusSpan.innerHTML = "The server has closed the connection.";
+            }
+            else{
+                console.log(message.data);
+                updateStatus(JSON.parse(message.data));
+            } */
+        });
+
+        source.addEventListener("error", (e) => {
+            console.log("There was an EventSource error:", e);
+        });
     }
 
     return { run };

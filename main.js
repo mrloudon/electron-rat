@@ -138,12 +138,11 @@ function sendCommand(command) {
     });
 }
 
-ipcMain.on("black", () => {
-    sendCommand("black");
+ipcMain.on("bgBlack", () => {
+    sendCommand("bgBlack");
 });
-
-ipcMain.on("white", () => {
-    sendCommand("white");
+ipcMain.on("bgWhite", () => {
+    sendCommand("bgWhite");
 });
 ipcMain.on("circle", () => {
     sendCommand("circle");
@@ -165,6 +164,21 @@ ipcMain.on("show", () => {
 });
 ipcMain.on("hide", () => {
     sendCommand("hide");
+});
+ipcMain.on("blue", () => {
+    sendCommand("blue");
+});
+ipcMain.on("green", () => {
+    sendCommand("green");
+});
+ipcMain.on("yellow", () => {
+    sendCommand("yellow");
+});
+ipcMain.on("small", () => {
+    sendCommand("small");
+});
+ipcMain.on("large", () => {
+    sendCommand("large");
 });
 
 ipcMain.handle("host", async () => host);

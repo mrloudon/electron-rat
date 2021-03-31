@@ -11,34 +11,59 @@
 </head>
 
 <body>
-    <h3>Rat Trainer</h3>
-    <div class="grid-container">
+    <h3>Rat Trainer [Pilot Study]</h3>
+    <div class="grid-4-container">
         <fieldset>
-            <legend>Shape</legend>
+            <legend>Stimulus Shape</legend>
             <button type="button" class="shape-btn">Square</button>
             <button type="button" class="shape-btn">Circle</button>
             <button type="button" class="shape-btn">Star</button>
         </fieldset>
         <fieldset>
-            <legend>Colour</legend>
+            <legend>Stimulus Colour</legend>
             <button type="button" class="color-btn">Green</button>
             <button type="button" class="color-btn">Yellow</button>
             <button type="button" class="color-btn">Blue</button>
         </fieldset>
         <fieldset>
-            <legend>Size</legend>
+            <legend>Stimulus Size</legend>
             <button type="button" class="size-btn">Small</button>
             <button type="button" class="size-btn">Large</button>
         </fieldset>
+        <fieldset>
+            <legend>Stimulus Position</legend>
+            <button type="button" class="position-btn">Left</button>
+            <button type="button" class="position-btn">Centre</button>
+            <button type="button" class="position-btn">Right</button>
+        </fieldset>
     </div>
+    <div class="grid-3-container">
+        <fieldset>
+            <legend>Background Colour</legend>
+            <button type="button" class="background-btn">Black</button>
+            <button type="button" class="background-btn">White</button>
+        </fieldset>
+        <fieldset>
+            <legend>Animation</legend>
+            <button type="button" class="animation-btn">Start</button>
+            <button type="button" class="animation-btn">Stop</button>
+        </fieldset>
+        <fieldset>
+            <legend>Manual Controls</legend>
+            <button type="button" class="visibility-btn">Show Stimulus</button>
+            <button type="button" class="visibility-btn">Hide Stimulus</button>
+            <button type="button">Reward</button>
+        </fieldset>
+        
+    </div>
+
+
     <div id="controls">
         <h2 id="time-span">00:00:00</h2>
         <button type="button" id="stop-btn">Stop</button>
         <button type="button" id="start-btn">Start</button>
         <button type="button" id="show-btn">Show</button>
         <button type="button" id="hide-btn">Hide</button>
-        <button type="button" id="black-btn">Black</button>
-        <button type="button" id="white-btn">White</button>
         <button type="button" id="start-animation-btn">Start Animation</button>
         <button type="button" id="stop-animation-btn">Stop Animation</button>
     </div>

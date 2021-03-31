@@ -8,6 +8,8 @@
 const MILLIS_SEC = 1000;
 const MILLIS_MIN = 1000 * 60;
 const MILLIS_HR = 60 * MILLIS_MIN;
+const ipc = require("electron").ipcRenderer;
+
 let startTime, clockTimer;
 
 const timeSpan = document.getElementById("time-span");
@@ -20,7 +22,10 @@ const hostSpan = document.getElementById("host-span");
 const shapeBtns = document.querySelectorAll(".shape-btn");
 const colorBtns = document.querySelectorAll(".color-btn");
 const sizeBtns = document.querySelectorAll(".size-btn");
-const ipc = require("electron").ipcRenderer;
+const backgroundBtns = document.querySelectorAll(".background-btn");
+const visibilityBtns = document.querySelectorAll(".visibility-btn");
+const animationBtns = document.querySelectorAll(".animation-btn");
+
 
 ipc.on("tap", (event, data) => {
     timeTD.innerHTML = data.time.toString();
@@ -30,35 +35,9 @@ ipc.on("tap", (event, data) => {
     stimulusTD.innerHTML = data.stimulus;
 });
 
-function showBtnClick() {
-    ipc.send("show");
-}
 
 function hideBtnClick() {
     ipc.send("hide");
-}
-
-function blackBtnClick() {
-    ipc.send("black");
-}
-
-function whiteBtnClick() {
-    ipc.send("white");
-}
-
-function startAnimationBtnClick() {
-    ipc.send("startAnimation");
-}
-
-function stopAnimationBtnClick() {
-    ipc.send("stopAnimation");
-}
-
-function stopBtnClick() {
-    if (clockTimer) {
-        window.clearInterval(clockTimer);
-        clockTimer = null;
-    }
 }
 
 function startBtnClick() {
@@ -122,18 +101,64 @@ function sizeBtnClick(event) {
         btn.style.backgroundColor = "rgb(239,239,239)";
     }
     event.currentTarget.style.backgroundColor = "#FCF6CF";
-    console.log(event.currentTarget.innerHTML);
+    switch (event.currentTarget.innerText) {
+        case "Small": ipc.send("small");
+            break;
+        case "Large": ipc.send("large");
+            break;
+    }
+}
+
+function backgroundBtnClick(event) {
+    for (const btn of backgroundBtns) {
+        btn.style.backgroundColor = "rgb(239,239,239)";
+    }
+    event.currentTarget.style.backgroundColor = "#FCF6CF";
+    switch (event.currentTarget.innerText) {
+        case "Black":
+            ipc.send("bgBlack");
+            break;
+        case "White":
+            ipc.send("bgWhite");
+            break;
+    }
+}
+
+function visibilityBtnClick(event) {
+    for (const btn of visibilityBtns) {
+        btn.style.backgroundColor = "rgb(239,239,239)";
+    }
+    event.currentTarget.style.backgroundColor = "#FCF6CF";
+    switch (event.currentTarget.innerText) {
+        case "Show Stimulus":
+            ipc.send("show");
+            break;
+        case "Hide Stimulus":
+            ipc.send("hide");
+            break;
+    }
+}
+
+function animationBtnClick(event) {
+    for (const btn of animationBtns) {
+        btn.style.backgroundColor = "rgb(239,239,239)";
+    }
+    event.currentTarget.style.backgroundColor = "#FCF6CF";
+    console.log(event.currentTarget.innerText);
+    switch (event.currentTarget.innerText) {
+        case "Start":
+            ipc.send("startAnimation");
+            break;
+        case "Stop":
+            ipc.send("stopAnimation");
+            break;
+    }
 }
 
 function attachListeners() {
     document.getElementById("start-btn").addEventListener("click", startBtnClick);
-    document.getElementById("stop-btn").addEventListener("click", stopBtnClick);
-    document.getElementById("show-btn").addEventListener("click", showBtnClick);
     document.getElementById("hide-btn").addEventListener("click", hideBtnClick);
-    document.getElementById("black-btn").addEventListener("click", blackBtnClick);
-    document.getElementById("white-btn").addEventListener("click", whiteBtnClick);
-    document.getElementById("start-animation-btn").addEventListener("click", startAnimationBtnClick);
-    document.getElementById("stop-animation-btn").addEventListener("click", stopAnimationBtnClick);
+   
     for (const btn of shapeBtns) {
         btn.addEventListener("click", shapeBtnClick);
     }
@@ -142,6 +167,15 @@ function attachListeners() {
     }
     for (const btn of sizeBtns) {
         btn.addEventListener("click", sizeBtnClick);
+    }
+    for (const btn of backgroundBtns) {
+        btn.addEventListener("click", backgroundBtnClick);
+    }
+    for (const btn of visibilityBtns) {
+        btn.addEventListener("click", visibilityBtnClick);
+    }
+    for (const btn of animationBtns) {
+        btn.addEventListener("click", animationBtnClick);
     }
 }
 

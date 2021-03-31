@@ -3,6 +3,15 @@
 const Rat = (function () {
     const PX_PER_MM = 600 / 93;
     const CM_1 = 10 * PX_PER_MM;
+    const CIRCLE_SMALL_R = CM_1;
+    const SQUARE_SMALL_SIDE = 2 * CM_1;
+    const STAR_SMALL_R1 = 1.25 * CM_1;
+    const STAR_SMALL_R2 = 0.75 * CM_1;
+    const CIRCLE_LARGE_R = 2 * CM_1;
+    const SQUARE_LARGE_SIDE = 3 * CM_1;
+    const STAR_LARGE_R1 = 2 * CM_1;
+    const STAR_LARGE_R2 = CM_1;
+
     const ROUTER_URL = "http://192.168.4.1";
 
     const Star = {
@@ -16,6 +25,20 @@ const Rat = (function () {
             this.setPosition(center);
         },
 
+        setSize(size) {
+            switch (size) {
+                case "small":
+                    this.radius1 = Math.floor(STAR_SMALL_R1);
+                    this.radius2 = Math.floor(STAR_SMALL_R2);
+                    break;
+                case "large":
+                    this.radius1 = Math.floor(STAR_LARGE_R1);
+                    this.radius2 = Math.floor(STAR_LARGE_R2);
+                    break;
+            }
+            this.setPosition(this.center);
+        },
+
         setPosition(center) {
             this.vertices = [];
             this.center = center;
@@ -24,19 +47,20 @@ const Rat = (function () {
             let x, y;
             let outerTheta = innerTheta + deltaTheta / 2;
             for (let n = 0; n < this.nSides; n++) {
-                x = this.radius1 * Math.cos(innerTheta) + center.x;
-                y = this.radius1 * Math.sin(innerTheta) + center.y;
+                x = Math.floor(this.radius1 * Math.cos(innerTheta) + center.x);
+                y = Math.floor(this.radius1 * Math.sin(innerTheta) + center.y);
                 this.vertices.push([x, y]);
-                x = this.radius2 * Math.cos(outerTheta) + center.x;
-                y = this.radius2 * Math.sin(outerTheta) + center.y;
+                x = Math.floor(this.radius2 * Math.cos(outerTheta) + center.x);
+                y = Math.floor(this.radius2 * Math.sin(outerTheta) + center.y);
                 this.vertices.push([x, y]);
                 innerTheta += deltaTheta;
                 outerTheta += deltaTheta;
             }
-            this.boundary = [this.center.x - this.radius1, this.center.y - this.radius1, this.radius1 * 2, this.radius1 * 2];
+            this.boundary = [this.center.x - this.radius1 - 1, this.center.y - this.radius1 - 1, this.radius1 * 2 + 2, this.radius1 * 2 + 2];
         },
 
         draw() {
+            this.ctx.strokeStyle = this.color;
             this.ctx.fillStyle = this.color;
             this.ctx.beginPath();
             this.ctx.moveTo(...this.vertices[0]);
@@ -65,6 +89,18 @@ const Rat = (function () {
             this.sideLength = Math.floor(sideLength);
             this.color = color;
             this.setPosition(center);
+        },
+
+        setSize(size) {
+            switch (size) {
+                case "small":
+                    this.sideLength = Math.floor(SQUARE_SMALL_SIDE);
+                    break;
+                case "large":
+                    this.sideLength = Math.floor(SQUARE_LARGE_SIDE);
+                    break;
+            }
+            this.setPosition(this.center);
         },
 
         draw() {
@@ -101,7 +137,21 @@ const Rat = (function () {
             this.setPosition(center);
         },
 
+        setSize(size) {
+            switch (size) {
+                case "small":
+                    this.radius = Math.floor(CIRCLE_SMALL_R);
+                    break;
+                case "large":
+                    this.radius = Math.floor(CIRCLE_LARGE_R);
+                    break;
+            }
+            this.setPosition(this.center);
+        },
+
         draw() {
+            this.ctx.clearRect(...this.boundary);
+            this.ctx.strokeStyle = this.color;
             this.ctx.fillStyle = this.color;
             this.ctx.beginPath();
             this.ctx.arc(this.center.x, this.center.y, this.radius, 0, 2 * Math.PI);
@@ -147,6 +197,7 @@ const Rat = (function () {
 
 
     function run() {
+        const source = new EventSource("/events");
         const statusSpan = document.getElementById("status-span");
         const canvas = document.getElementById("c");
         const context = canvas.getContext("2d");
@@ -155,40 +206,10 @@ const Rat = (function () {
         let stopAnimation = true;
         let startTime, stimulusType;
         let backgroundColor = "white";
-        let currentShape = "circle";
         let shape;
-        let state = "Idle";
         let hidden = true;
 
-        function updateStatus(status) {
-            if (status.hidden !== hidden) {
-                hidden = status.hidden;
-                if (hidden) {
-                    shape && shape.clear();
-                }
-                else {
-                    shape && shape.draw();
-                }
-            }
-            if (status.backgroundColor !== backgroundColor) {
-                backgroundColor = status.backgroundColor;
-                canvas.style.backgroundColor = backgroundColor;
-            }
-            if (status.currentShape !== currentShape) {
-                currentShape = status.currentShape;
-                selectShape(currentShape);
-            }
-            if (status.stopAnimation !== stopAnimation) {
-                stopAnimation = status.stopAnimation;
-                if (!stopAnimation) {
-                    window.requestAnimationFrame(animationLoop);
-                }
-            }
-            if (status.state !== state) {
-                state = status.state;
-                statusSpan.innerHTML = state;
-            }
-        }
+
 
         async function onClick(e) {
             const rect = e.target.getBoundingClientRect();
@@ -247,63 +268,132 @@ const Rat = (function () {
             canvas.addEventListener("mousedown", onClick);
         }
 
+        function messageHandler(message) {
+            switch (message.data) {
+                case "close":
+                    console.log("Closing!");
+                    source.close();
+                    statusSpan.innerHTML = "The server has closed the connection.";
+                    break;
+                case "circle":
+                    statusSpan.innerHTML = "Circle";
+                    selectShape(message.data);
+                    break;
+                case "square":
+                    statusSpan.innerHTML = "Square";
+                    selectShape(message.data);
+                    break;
+                case "star":
+                    statusSpan.innerHTML = "Star";
+                    selectShape(message.data);
+                    break;
+                case "show":
+                    statusSpan.innerHTML = "Show stimulus";
+                    shape && shape.draw();
+                    hidden = false;
+                    break;
+                case "hide":
+                    statusSpan.innerHTML = "Hide stimulus";
+                    shape && shape.clear();
+                    hidden = true;
+                    break;
+                case "bgWhite":
+                    statusSpan.innerHTML = "White background";
+                    canvas.style.backgroundColor = "white";
+                    break;
+                case "bgBlack":
+                    statusSpan.innerHTML = "Black background";
+                    canvas.style.backgroundColor = "black";
+                    break;
+                case "startAnimation":
+                    statusSpan.innerHTML = "Start animation";
+                    stopAnimation = false;
+                    window.requestAnimationFrame(animationLoop);
+                    break;
+                case "stopAnimation":
+                    statusSpan.innerHTML = "Stop animation";
+                    stopAnimation = true;
+                    break;
+                case "blue":
+                    statusSpan.innerHTML = "Blue";
+                    [Circle, Star, Square].forEach(elem => elem.color = "blue");
+                    if (!hidden) {
+                        shape.clear();
+                        shape.draw();
+                    }
+                    break;
+                case "yellow":
+                    statusSpan.innerHTML = "Yellow";
+                    [Circle, Star, Square].forEach(elem => elem.color = "yellow");
+                    if (!hidden) {
+                        shape.clear();
+                        shape.draw();
+                    }
+                    break;
+                case "green":
+                    statusSpan.innerHTML = "Green";
+                    [Circle, Star, Square].forEach(elem => elem.color = "green");
+                    if (!hidden) {
+                        shape.clear();
+                        shape.draw();
+                    }
+                    break;
+                case "small":
+                    statusSpan.innerHTML = "Small";
+                    shape.clear();
+                    Star.setSize("small");
+                    Circle.setSize("small");
+                    Square.setSize("small");
+                    if (!hidden) {
+                        shape.draw();
+                    }
+                    break;
+                case "large":
+                    statusSpan.innerHTML = "Large";
+                    shape.clear();
+                    Star.setSize("large");
+                    Circle.setSize("large");
+                    Square.setSize("large");
+                    if (!hidden) {
+                        shape.draw();
+                    }
+                    break;
+            }
+        }
 
         async function initialise() {
+            source.addEventListener("open", () => {
+                statusSpan.innerHTML = "Connection to the server established";
+            });
+
+            source.addEventListener("message", messageHandler);
+            source.addEventListener("error", (e) => {
+                statusSpan.innerHTML = "<strong>There was an EventSource error!</strong> (check console for details)";
+                console.log("There was an EventSource error:", e);
+            });
             attachListeners();
 
-            minX = 100;
-            maxX = 900;
+            minX = 150;
+            maxX = 850;
             position.y = 250;
             position.x = minX;
 
-            Circle.initialise(context, position, CM_1, "green");
-            Square.initialise(context, position, CM_1 * 2, "green");
-            Star.initialise(context, position, 7, CM_1 * 1.25, CM_1 * .75, "green");
+            Circle.initialise(context, position, CIRCLE_SMALL_R, "green");
+            Square.initialise(context, position, SQUARE_SMALL_SIDE, "green");
+            Star.initialise(context, position, 7, STAR_SMALL_R1, STAR_SMALL_R2, "green");
             canvas.style.backgroundColor = backgroundColor;
 
             shape = Circle;
             stimulusType = "circle";
-
             direction = 4;
-
-            fetch("/reload")
-                .then(response => {
-                    return response.text();
-                })
-                .then(text => {
-                    statusSpan.innerHTML = text;
-                })
-                .catch(e => {
-                    console.log("There was a problem with fetch: ", e);
-                    statusSpan.innerHTML = `<strong>The server is down! Check and reload.</strong>`;
-                });
-
             startTime = Date.now();
         }
 
         initialise();
 
-        const source = new EventSource("/events");
 
-        source.addEventListener("open", () => {
-            console.log("The connection has been established");
-        });
 
-        source.addEventListener("message", message => {
-    /*         if(message.data === "close"){
-                console.log("Closing!");
-                source.close();
-                statusSpan.innerHTML = "The server has closed the connection.";
-            }
-            else{
-                console.log(message.data);
-                updateStatus(JSON.parse(message.data));
-            } */
-        });
 
-        source.addEventListener("error", (e) => {
-            console.log("There was an EventSource error:", e);
-        });
     }
 
     return { run };

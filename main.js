@@ -113,8 +113,12 @@ expressApp.get("/tap", function (req, res) {
         x: req.query.x,
         y: req.query.y,
         time: req.query.t,
-        stimulus: req.query.stim,
-        success: req.query.hit
+        shape: req.query.sh,
+        success: req.query.h,
+        color: req.query.c,
+        bgColor: req.query.b,
+        size: req.query.sz,
+        visible: req.query.v
     });
     console.log(`X: ${req.query.x}, Y: ${req.query.y}, Success: ${req.query.hit}, Time: ${req.query.t}, Stimulus: ${req.query.stim}`);
 });

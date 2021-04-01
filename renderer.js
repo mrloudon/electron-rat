@@ -17,6 +17,7 @@ const shapeTD = document.getElementById("shape-td");
 const sizeTD = document.getElementById("size-td");
 const colorTD = document.getElementById("color-td");
 const backgroundTD = document.getElementById("background-td");
+const visibleTD = document.getElementById("visible-td");
 const hostSpan = document.getElementById("host-span");
 const shapeBtns = document.querySelectorAll(".shape-btn");
 const colorBtns = document.querySelectorAll(".color-btn");
@@ -27,6 +28,7 @@ const animationBtns = document.querySelectorAll(".animation-btn");
 const positionBtns = document.querySelectorAll(".position-btn");
 
 ipc.on("tap", (event, data) => {
+    console.log(data);
     timeTD.innerHTML = data.time.toString();
     xTD.innerHTML = data.x.toString();
     yTD.innerHTML = data.y.toString();
@@ -35,6 +37,7 @@ ipc.on("tap", (event, data) => {
     sizeTD.innerHTML = data.size;
     colorTD.innerHTML = data.color;
     backgroundTD.innerHTML = data.bgColor;
+    visibleTD.innerHTML = data.visible;
 });
 
 function shapeBtnClick(event) {

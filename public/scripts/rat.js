@@ -207,7 +207,9 @@ const Rat = (function () {
         const context = canvas.getContext("2d");
         let direction;
         let stopAnimation = true;
-        let startTime, stimulusType;
+        let startTime, stimulusType; 
+        let color = "green"; 
+        let size = "small";
         let backgroundColor = "white";
         let shape, animationPosition;
         let hidden = true;
@@ -217,7 +219,8 @@ const Rat = (function () {
             const x = Math.round(e.clientX - rect.left); //x position within the element.
             const y = Math.round(e.clientY - rect.top);  //y position within the element.
             const targetHit = shape.inside({ x, y });
-            const resp = await fetch(`/tap?x=${x}&y=${y}&hit=${targetHit}&t=${Date.now() - startTime}&stim=${stimulusType}`);
+            const v = hidden ? "hidden" : "visible";
+            const resp = await fetch(`/tap?x=${x}&y=${y}&h=${targetHit}&t=${Date.now() - startTime}&sh=${stimulusType}&sz=${size}&c=${color}&b=${backgroundColor}&v=${v}`);
             if (targetHit) {
                 await fetch(`${ROUTER_URL}/b`);
             }
@@ -299,12 +302,14 @@ const Rat = (function () {
                     hidden = true;
                     break;
                 case "bgWhite":
+                    backgroundColor = "white";
                     statusSpan.innerHTML = "White background";
-                    canvas.style.backgroundColor = "white";
+                    canvas.style.backgroundColor = backgroundColor;
                     break;
                 case "bgBlack":
+                    backgroundColor = "balck";
                     statusSpan.innerHTML = "Black background";
-                    canvas.style.backgroundColor = "black";
+                    canvas.style.backgroundColor = backgroundColor;
                     break;
                 case "startAnimation":
                     statusSpan.innerHTML = "Start animation";
@@ -340,6 +345,7 @@ const Rat = (function () {
                     }
                     break;
                 case "small":
+                    size = "small";
                     statusSpan.innerHTML = "Small";
                     shape.clear();
                     Star.setSize("small");
@@ -350,6 +356,7 @@ const Rat = (function () {
                     }
                     break;
                 case "large":
+                    size = "large";
                     statusSpan.innerHTML = "Large";
                     shape.clear();
                     Star.setSize("large");
@@ -397,16 +404,16 @@ const Rat = (function () {
                 console.log("There was an EventSource error:", e);
             });
             attachListeners();
-
             animationPosition = { x: LEFT_X, y: POSITION_Y };
-            Circle.initialise(context, animationPosition, CIRCLE_SMALL_R, "green");
-            Square.initialise(context, animationPosition, SQUARE_SMALL_SIDE, "green");
-            Star.initialise(context, animationPosition, 7, STAR_SMALL_R1, STAR_SMALL_R2, "green");
+            Circle.initialise(context, animationPosition, CIRCLE_SMALL_R, color);
+            Square.initialise(context, animationPosition, SQUARE_SMALL_SIDE, color);
+            Star.initialise(context, animationPosition, 7, STAR_SMALL_R1, STAR_SMALL_R2, color);
             canvas.style.backgroundColor = backgroundColor;
 
             shape = Circle;
             stimulusType = "circle";
             direction = 4;
+           
             startTime = Date.now();
         }
 

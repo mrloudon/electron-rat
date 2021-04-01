@@ -14,7 +14,7 @@ let mainWindow;
 
 function getHostIP() {
     const nets = networkInterfaces();
-    const IP_REG_EXP = /192\.168\.4\.[2-9]/;
+    const IP_REG_EXP = /192\.168\.4\.[0-9]+/;
 
     for (const name of Object.keys(nets)) {
         for (const net of nets[name]) {
@@ -102,7 +102,7 @@ expressApp.get("/events", async function (req, res) {
     console.log("Added new client", clientId);
 
     req.on("close", () => {
-        console.log(`${clientId} Connection closed`);
+        console.log(`Connection to ${clientId} closed`);
         clients = clients.filter(client => client.id !== clientId);
     });
 });
@@ -179,6 +179,15 @@ ipcMain.on("small", () => {
 });
 ipcMain.on("large", () => {
     sendCommand("large");
+});
+ipcMain.on("left", () => {
+    sendCommand("left");
+});
+ipcMain.on("right", () => {
+    sendCommand("right");
+});
+ipcMain.on("center", () => {
+    sendCommand("center");
 });
 
 ipcMain.handle("host", async () => host);

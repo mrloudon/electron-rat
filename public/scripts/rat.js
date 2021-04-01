@@ -11,6 +11,10 @@ const Rat = (function () {
     const SQUARE_LARGE_SIDE = 3 * CM_1;
     const STAR_LARGE_R1 = 2 * CM_1;
     const STAR_LARGE_R2 = CM_1;
+    const LEFT_X = 150;
+    const RIGHT_X = 850;
+    const CENTER_X = 500;
+    const POSITION_Y = 300;
 
     const ROUTER_URL = "http://192.168.4.1";
 
@@ -201,15 +205,12 @@ const Rat = (function () {
         const statusSpan = document.getElementById("status-span");
         const canvas = document.getElementById("c");
         const context = canvas.getContext("2d");
-        const position = { x: 200, y: 250 };
-        let minX, maxX, direction;
+        let direction;
         let stopAnimation = true;
         let startTime, stimulusType;
         let backgroundColor = "white";
-        let shape;
+        let shape, animationPosition;
         let hidden = true;
-
-
 
         async function onClick(e) {
             const rect = e.target.getBoundingClientRect();
@@ -230,14 +231,14 @@ const Rat = (function () {
             if (stopAnimation) {
                 return;
             }
-            position.x += direction;
-            if ((direction > 0 && position.x > maxX) || (direction < 0 && position.x < minX)) {
+            animationPosition.x += direction;
+            if ((direction > 0 && animationPosition.x > RIGHT_X) || (direction < 0 && animationPosition.x < LEFT_X)) {
                 direction *= -1;
                 window.requestAnimationFrame(animationLoop);
                 return;
             }
             shape.clear();
-            shape.setPosition(position);
+            shape.setPosition(animationPosition);
             hidden || shape.draw();
             window.requestAnimationFrame(animationLoop);
         }
@@ -258,7 +259,7 @@ const Rat = (function () {
                     stimulusType = "star"
                     break;
             }
-            shape.setPosition(position);
+            shape.clear();
             if (!hidden) {
                 shape.draw();
             }
@@ -358,6 +359,30 @@ const Rat = (function () {
                         shape.draw();
                     }
                     break;
+                case "left":
+                    statusSpan.innerHTML = "Left";
+                    shape.clear();
+                    [Circle, Star, Square].forEach(elem => elem.setPosition({ x: LEFT_X, y: POSITION_Y }));
+                    if (!hidden) {
+                        shape.draw();
+                    }
+                    break;
+                case "right":
+                    shape.clear();
+                    statusSpan.innerHTML = "Right";
+                    [Circle, Star, Square].forEach(elem => elem.setPosition({ x: RIGHT_X, y: POSITION_Y }));
+                    if (!hidden) {
+                        shape.draw();
+                    }
+                    break;
+                case "center":
+                    shape.clear();
+                    statusSpan.innerHTML = "Centre";
+                    [Circle, Star, Square].forEach(elem => elem.setPosition({ x: CENTER_X, y: POSITION_Y }));
+                    if (!hidden) {
+                        shape.draw();
+                    }
+                    break;
             }
         }
 
@@ -373,14 +398,10 @@ const Rat = (function () {
             });
             attachListeners();
 
-            minX = 150;
-            maxX = 850;
-            position.y = 250;
-            position.x = minX;
-
-            Circle.initialise(context, position, CIRCLE_SMALL_R, "green");
-            Square.initialise(context, position, SQUARE_SMALL_SIDE, "green");
-            Star.initialise(context, position, 7, STAR_SMALL_R1, STAR_SMALL_R2, "green");
+            animationPosition = { x: LEFT_X, y: POSITION_Y };
+            Circle.initialise(context, animationPosition, CIRCLE_SMALL_R, "green");
+            Square.initialise(context, animationPosition, SQUARE_SMALL_SIDE, "green");
+            Star.initialise(context, animationPosition, 7, STAR_SMALL_R1, STAR_SMALL_R2, "green");
             canvas.style.backgroundColor = backgroundColor;
 
             shape = Circle;
@@ -390,10 +411,6 @@ const Rat = (function () {
         }
 
         initialise();
-
-
-
-
     }
 
     return { run };

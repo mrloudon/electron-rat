@@ -15,15 +15,13 @@
     <div class="grid-4-container">
         <fieldset>
             <legend>Stimulus Shape</legend>
-            <button type="button" class="shape-btn">Square</button>
             <button type="button" class="shape-btn">Circle</button>
             <button type="button" class="shape-btn">Star</button>
         </fieldset>
         <fieldset>
             <legend>Stimulus Colour</legend>
             <button type="button" class="color-btn">Green</button>
-            <button type="button" class="color-btn">Yellow</button>
-            <button type="button" class="color-btn">Blue</button>
+            <button type="button" class="color-btn">Grey</button>
         </fieldset>
         <fieldset>
             <legend>Stimulus Size</legend>
@@ -54,7 +52,12 @@
             <button type="button" class="visibility-btn">Hide Stimulus</button>
             <button type="button" id="reward-btn">Reward</button>
         </fieldset>
-        
+    </div>
+    <div>
+        <fieldset>
+            <input type="range" min="0" max="255" value="50" class="slider" id="stimulusRange">
+            <label for="stimulusRange" id="stimulusRangeLabel">0</label>
+        </fieldset>
     </div>
     <table>
         <tr>

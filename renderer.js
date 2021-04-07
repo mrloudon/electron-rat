@@ -27,6 +27,8 @@ const visibilityBtns = document.querySelectorAll(".visibility-btn");
 const animationBtns = document.querySelectorAll(".animation-btn");
 const positionBtns = document.querySelectorAll(".position-btn");
 const rewardBtn = document.getElementById("reward-btn");
+const stimulusRange = document.getElementById("stimulusRange");
+const stimulusRangeLabel = document.getElementById("stimulusRangeLabel");
 
 ipc.on("tap", (event, data) => {
     console.log(data);
@@ -64,9 +66,7 @@ function colorBtnClick(event) {
     switch (event.currentTarget.innerText) {
         case "Green": ipc.send("green");
             break;
-        case "Yellow": ipc.send("yellow");
-            break;
-        case "Blue": ipc.send("blue");
+        case "Grey": ipc.send("grey");
             break;
     }
 }
@@ -179,6 +179,9 @@ function attachListeners() {
         btn.addEventListener("click", positionBtnClick);
     }
     rewardBtn.addEventListener("click", rewardBtnClick);
+    stimulusRange.oninput = function() {
+        stimulusRangeLabel.innerHTML = this.value;
+    };
 }
 
 attachListeners();

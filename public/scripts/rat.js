@@ -15,6 +15,7 @@ const Rat = (function () {
     const RIGHT_X = 850;
     const CENTER_X = 500;
     const POSITION_Y = 300;
+    const ANIMATION_STEP = 4;
 
     const ROUTER_URL = "http://192.168.4.1";
 
@@ -205,13 +206,17 @@ const Rat = (function () {
         const statusSpan = document.getElementById("status-span");
         const canvas = document.getElementById("c");
         const context = canvas.getContext("2d");
+        const animationPosition = {
+            x: LEFT_X,
+            y: POSITION_Y
+        };
         let direction;
         let stopAnimation = true;
         let startTime, stimulusType; 
         let color = "green"; 
         let size = "small";
         let backgroundColor = "white";
-        let shape, animationPosition;
+        let shape;
         let hidden = true;
 
         async function onClick(e) {
@@ -307,7 +312,7 @@ const Rat = (function () {
                     canvas.style.backgroundColor = backgroundColor;
                     break;
                 case "bgBlack":
-                    backgroundColor = "balck";
+                    backgroundColor = "black";
                     statusSpan.innerHTML = "Black background";
                     canvas.style.backgroundColor = backgroundColor;
                     break;
@@ -370,6 +375,8 @@ const Rat = (function () {
                     statusSpan.innerHTML = "Left";
                     shape.clear();
                     [Circle, Star, Square].forEach(elem => elem.setPosition({ x: LEFT_X, y: POSITION_Y }));
+                    animationPosition.x = LEFT_X;
+                    direction = ANIMATION_STEP;
                     if (!hidden) {
                         shape.draw();
                     }
@@ -377,7 +384,9 @@ const Rat = (function () {
                 case "right":
                     shape.clear();
                     statusSpan.innerHTML = "Right";
+                    direction = -1 * ANIMATION_STEP;
                     [Circle, Star, Square].forEach(elem => elem.setPosition({ x: RIGHT_X, y: POSITION_Y }));
+                    animationPosition.x = RIGHT_X;
                     if (!hidden) {
                         shape.draw();
                     }
@@ -386,9 +395,13 @@ const Rat = (function () {
                     shape.clear();
                     statusSpan.innerHTML = "Centre";
                     [Circle, Star, Square].forEach(elem => elem.setPosition({ x: CENTER_X, y: POSITION_Y }));
+                    animationPosition.x = CENTER_X;
                     if (!hidden) {
                         shape.draw();
                     }
+                    break;
+                case "reward":
+                    statusSpan.innerHTML = "Reward";
                     break;
             }
         }
@@ -404,7 +417,6 @@ const Rat = (function () {
                 console.log("There was an EventSource error:", e);
             });
             attachListeners();
-            animationPosition = { x: LEFT_X, y: POSITION_Y };
             Circle.initialise(context, animationPosition, CIRCLE_SMALL_R, color);
             Square.initialise(context, animationPosition, SQUARE_SMALL_SIDE, color);
             Star.initialise(context, animationPosition, 7, STAR_SMALL_R1, STAR_SMALL_R2, color);
@@ -412,7 +424,7 @@ const Rat = (function () {
 
             shape = Circle;
             stimulusType = "circle";
-            direction = 4;
+            direction = ANIMATION_STEP;
            
             startTime = Date.now();
         }

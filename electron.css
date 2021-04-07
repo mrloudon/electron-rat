@@ -40,6 +40,10 @@ button {
     border-radius: 5px;
 }
 
+#reward-btn {
+    background-color: #FFB6C1;
+}
+
 table {
     margin-top: 10px;
     font-family: arial, sans-serif;

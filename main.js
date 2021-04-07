@@ -193,6 +193,9 @@ ipcMain.on("right", () => {
 ipcMain.on("center", () => {
     sendCommand("center");
 });
+ipcMain.on("reward", () => {
+    sendCommand("reward");
+});
 
 ipcMain.handle("host", async () => host);
 

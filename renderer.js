@@ -26,6 +26,7 @@ const backgroundBtns = document.querySelectorAll(".background-btn");
 const visibilityBtns = document.querySelectorAll(".visibility-btn");
 const animationBtns = document.querySelectorAll(".animation-btn");
 const positionBtns = document.querySelectorAll(".position-btn");
+const rewardBtn = document.getElementById("reward-btn");
 
 ipc.on("tap", (event, data) => {
     console.log(data);
@@ -148,6 +149,13 @@ function positionBtnClick(event) {
     }
 }
 
+function rewardBtnClick(event){
+    ipc.send("reward");
+    const target = event.currentTarget;
+    target.disabled = true;
+    setTimeout(() => target.disabled = false, 2000);
+}
+
 function attachListeners() {
     for (const btn of shapeBtns) {
         btn.addEventListener("click", shapeBtnClick);
@@ -170,6 +178,7 @@ function attachListeners() {
     for (const btn of positionBtns) {
         btn.addEventListener("click", positionBtnClick);
     }
+    rewardBtn.addEventListener("click", rewardBtnClick);
 }
 
 attachListeners();

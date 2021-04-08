@@ -9,6 +9,10 @@ const ipc = require("electron").ipcRenderer;
 
 //let startTime;
 
+
+const INITIAL_BACKGROUND = 127;
+const INITIAL_STIMULUS = 127;
+
 const timeTD = document.getElementById("time-td");
 const xTD = document.getElementById("x-td");
 const yTD = document.getElementById("y-td");
@@ -19,16 +23,18 @@ const colorTD = document.getElementById("color-td");
 const backgroundTD = document.getElementById("background-td");
 const visibleTD = document.getElementById("visible-td");
 const hostSpan = document.getElementById("host-span");
+const clientsSpan = document.getElementById("clients-span");
 const shapeBtns = document.querySelectorAll(".shape-btn");
 const colorBtns = document.querySelectorAll(".color-btn");
 const sizeBtns = document.querySelectorAll(".size-btn");
-const backgroundBtns = document.querySelectorAll(".background-btn");
 const visibilityBtns = document.querySelectorAll(".visibility-btn");
 const animationBtns = document.querySelectorAll(".animation-btn");
 const positionBtns = document.querySelectorAll(".position-btn");
 const rewardBtn = document.getElementById("reward-btn");
 const stimulusRange = document.getElementById("stimulusRange");
 const stimulusRangeLabel = document.getElementById("stimulusRangeLabel");
+const backgroundRange = document.getElementById("backgroundRange");
+const backgroundRangeLabel = document.getElementById("backgroundRangeLabel");
 
 ipc.on("tap", (event, data) => {
     console.log(data);
@@ -84,20 +90,6 @@ function sizeBtnClick(event) {
     }
 }
 
-function backgroundBtnClick(event) {
-    for (const btn of backgroundBtns) {
-        btn.style.backgroundColor = "rgb(239,239,239)";
-    }
-    event.currentTarget.style.backgroundColor = "#FCF6CF";
-    switch (event.currentTarget.innerText) {
-        case "Black":
-            ipc.send("bgBlack");
-            break;
-        case "White":
-            ipc.send("bgWhite");
-            break;
-    }
-}
 
 function visibilityBtnClick(event) {
     for (const btn of visibilityBtns) {
@@ -166,9 +158,6 @@ function attachListeners() {
     for (const btn of sizeBtns) {
         btn.addEventListener("click", sizeBtnClick);
     }
-    for (const btn of backgroundBtns) {
-        btn.addEventListener("click", backgroundBtnClick);
-    }
     for (const btn of visibilityBtns) {
         btn.addEventListener("click", visibilityBtnClick);
     }
@@ -180,10 +169,29 @@ function attachListeners() {
     }
     rewardBtn.addEventListener("click", rewardBtnClick);
     stimulusRange.oninput = function() {
+        ipc.send("foreground", this.value);
         stimulusRangeLabel.innerHTML = this.value;
+    };
+    backgroundRange.oninput = function() {
+        ipc.send("background", this.value);
+        backgroundRangeLabel.innerHTML = this.value;
     };
 }
 
-attachListeners();
-ipc.invoke("host")
-    .then(result => hostSpan.innerHTML = result);
+function initialise(){
+    attachListeners();
+    backgroundRange.value = INITIAL_BACKGROUND;
+    stimulusRange.value = INITIAL_STIMULUS;
+    backgroundRangeLabel.innerHTML = INITIAL_BACKGROUND;
+    stimulusRangeLabel.innerHTML = INITIAL_STIMULUS;
+
+    ipc.on("clients", (event, message) => {
+        clientsSpan.innerHTML = message;
+    });
+
+    ipc.invoke("host")
+        .then(result => hostSpan.innerHTML = result);
+}
+
+initialise();
+

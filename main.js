@@ -32,7 +32,7 @@ function getHostIP() {
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1024,
-        height: 600,
+        height: 768,
         fullscreen: false,
         show: false,
         backgroundColor: "#eee",
@@ -49,6 +49,7 @@ function createWindow() {
     mainWindow.once("ready-to-show", () => {
         mainWindow.setMenuBarVisibility(false);
         mainWindow.show();
+        mainWindow.webContents.send("clients", clients.length);
     });
 
 }
@@ -72,7 +73,7 @@ app.whenReady().then(() => {
 app.on("window-all-closed", function () {
     clients.forEach(client => {
         console.log("Closing:", client.id);
-        client.res.write(`data:close\n\n`);
+        sendCommand("close");
         client.res.end();
     });
     if (process.platform !== "darwin") app.quit();
@@ -100,10 +101,12 @@ expressApp.get("/events", async function (req, res) {
     }
     clients.push(newClient);
     console.log("Added new client", clientId);
+    mainWindow.webContents.send("clients", clients.length);
 
     req.on("close", () => {
         console.log(`Connection to ${clientId} closed`);
         clients = clients.filter(client => client.id !== clientId);
+        mainWindow.webContents.send("clients", clients.length);
     });
 });
 
@@ -123,11 +126,6 @@ expressApp.get("/tap", function (req, res) {
     console.log(`X: ${req.query.x}, Y: ${req.query.y}, Success: ${req.query.hit}, Time: ${req.query.t}, Stimulus: ${req.query.stim}`);
 });
 
-
-expressApp.get("/reload", function (req, res) {
-    res.send("Reload OK");
-});
-
 function bindServer() {
     host = getHostIP();
     expressApp.listen(PORT, host, function () {
@@ -135,24 +133,20 @@ function bindServer() {
     });
 }
 
-function sendCommand(command) {
+function sendCommand(command, value) {
     clients.forEach(client => {
-        console.log("Sending to:", client.id);
-        client.res.write(`data: ${command}\n\n`);
+        client.res.write(`data: ${JSON.stringify({ command, value })}\n\n`);
     });
 }
 
-ipcMain.on("bgBlack", () => {
-    sendCommand("bgBlack");
+ipcMain.on("background", (event, value) => {
+    sendCommand("background", value);
 });
-ipcMain.on("bgWhite", () => {
-    sendCommand("bgWhite");
+ipcMain.on("foreground", (event, value) => {
+    sendCommand("foreground", value);
 });
 ipcMain.on("circle", () => {
     sendCommand("circle");
-});
-ipcMain.on("square", () => {
-    sendCommand("square");
 });
 ipcMain.on("star", () => {
     sendCommand("star");

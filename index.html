@@ -15,50 +15,72 @@
     <div class="grid-4-container">
         <fieldset>
             <legend>Stimulus Shape</legend>
-            <button type="button" class="shape-btn">Circle</button>
-            <button type="button" class="shape-btn">Star</button>
+            <button type="button" class="radio-btn shape-btn">Circle</button>
+            <button type="button" class="radio-btn shape-btn">Star</button>
         </fieldset>
         <fieldset>
             <legend>Stimulus Colour</legend>
-            <button type="button" class="color-btn">Green</button>
-            <button type="button" class="color-btn">Grey</button>
+            <button type="button" class="radio-btn color-btn">Green</button>
+            <button type="button" class="radio-btn color-btn">Grey</button>
         </fieldset>
         <fieldset>
             <legend>Stimulus Size</legend>
-            <button type="button" class="size-btn">Small</button>
-            <button type="button" class="size-btn">Large</button>
+            <button type="button" class="radio-btn size-btn">Small</button>
+            <button type="button" class="radio-btn size-btn">Large</button>
         </fieldset>
         <fieldset>
             <legend>Stimulus Position</legend>
-            <button type="button" class="position-btn">Left</button>
-            <button type="button" class="position-btn">Centre</button>
-            <button type="button" class="position-btn">Right</button>
+            <button type="button" class="radio-btn position-btn">Left</button>
+            <button type="button" class="radio-btn position-btn">Centre</button>
+            <button type="button" class="radio-btn position-btn">Right</button>
         </fieldset>
     </div>
     <div class="grid-3-container">
         <fieldset>
-            <legend>Background Colour</legend>
-            <button type="button" class="background-btn">Black</button>
-            <button type="button" class="background-btn">White</button>
-        </fieldset>
-        <fieldset>
             <legend>Animation</legend>
-            <button type="button" class="animation-btn">Start</button>
-            <button type="button" class="animation-btn">Stop</button>
+            <button type="button" class="radio-btn animation-btn">Start</button>
+            <button type="button" class="radio-btn animation-btn">Stop</button>
+        </fieldset>
+        <fieldset style="padding-top: 15px;">
+            <legend>Automatic Controls</legend>
+            <input type="checkbox" id="autoReward" name="autoReward" checked>
+            <label for="autoReward" style="font-family: Arial, Helvetica, sans-serif;"> Automatic Reward</label>
         </fieldset>
         <fieldset>
             <legend>Manual Controls</legend>
-            <button type="button" class="visibility-btn">Show Stimulus</button>
-            <button type="button" class="visibility-btn">Hide Stimulus</button>
-            <button type="button" id="reward-btn">Reward</button>
+            <button type="button" class="radio-btn visibility-btn">Show Stimulus</button>
+            <button type="button" class="radio-btn visibility-btn">Hide Stimulus</button>
+            <button type="button" id="reward-btn" class="ordinary-btn">Reward</button>
         </fieldset>
     </div>
     <div>
         <fieldset>
-            <input type="range" min="0" max="255" value="50" class="slider" id="stimulusRange">
+            <legend>Stimulus Luminance</legend>
+            <input type="range" min="0" max="255" value="50" class="slider" id="stimulusRange" name="stimulusRange">
             <label for="stimulusRange" id="stimulusRangeLabel">0</label>
         </fieldset>
+        <fieldset>
+            <legend>Background Luminance</legend>
+            <input type="range" min="0" max="255" value="50" class="slider" id="backgroundRange" name="backgroundRange">
+            <label for="backgroundRange" id="backgroundRangeLabel">0</label>
+        </fieldset>
     </div>
+
+    <fieldset>
+        <legend>Web Server</legend>
+        <div class="grid-4-container">
+            <div style="padding-top: 10px;">
+                <span class="feedback-label">Server IP:</span> <span id="host-span" class="feedback">&mdash;</span>
+            </div>
+            <div  style="padding-top: 10px;">
+                <span class="feedback-label">N Clients:</span> <span id="clients-span" class="feedback">&mdash;</span>
+            </div>
+            <div>
+                <button type="button" id="disconnect-btn" class="ordinary-btn">Disconnect Clients</button>
+            </div>
+        </div>
+    </fieldset>
+
     <table>
         <tr>
             <th>Time</th>
@@ -83,7 +105,6 @@
             <td id="background-td">&#8212;</td>
         </tr>
     </table>
-    <h4>Host IP: <span id="host-span">Unknown!</span></h4>
     <script src="./renderer.js"></script>
 </body>
 

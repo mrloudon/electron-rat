@@ -94,7 +94,16 @@ const Rat = (function () {
         }
 
         function messageHandler(message) {
-            switch (message.data) {
+            let data;
+            try{
+                data = JSON.parse(message.data);
+            }
+            catch(e){
+                console.log(e.message);
+                console.log(message);
+                return;
+            }
+            switch (data.command) {
                 case "close":
                     console.log("Closing!");
                     source.close();
@@ -102,11 +111,11 @@ const Rat = (function () {
                     break;
                 case "circle":
                     statusSpan.innerHTML = "Circle";
-                    selectShape(message.data);
+                    selectShape(data.command);
                     break;
                 case "star":
                     statusSpan.innerHTML = "Star";
-                    selectShape(message.data);
+                    selectShape(data.command);
                     break;
                 case "show":
                     statusSpan.innerHTML = "Show stimulus";
@@ -118,15 +127,14 @@ const Rat = (function () {
                     shape && shape.clear();
                     hidden = true;
                     break;
-                case "bgWhite":
-                    backgroundColor = "white";
-                    statusSpan.innerHTML = "White background";
+                case "background":
+                    backgroundColor = `rgb(${data.value},${data.value},${data.value})`;
+                    statusSpan.innerHTML = "Background luminance";
                     canvas.style.backgroundColor = backgroundColor;
                     break;
-                case "bgBlack":
-                    backgroundColor = "black";
-                    statusSpan.innerHTML = "Black background";
-                    canvas.style.backgroundColor = backgroundColor;
+                case "foreground":
+                    statusSpan.innerHTML = "Stimulus luminance";
+                    Shapes.Shape.brightness = data.value;
                     break;
                 case "startAnimation":
                     statusSpan.innerHTML = "Start animation";
@@ -222,7 +230,6 @@ const Rat = (function () {
             });
             attachListeners();
             Shapes.Circle.initialise(context, animationPosition, CIRCLE_SMALL_R, color, brightness);
-            //Square.initialise(context, animationPosition, SQUARE_SMALL_SIDE, color, brightness);
             Shapes.Star.initialise(context, animationPosition, 7, STAR_SMALL_R1, STAR_SMALL_R2, color, brightness);
             canvas.style.backgroundColor = backgroundColor;
 
@@ -230,6 +237,10 @@ const Rat = (function () {
             stimulusType = "circle";
             direction = ANIMATION_STEP;
            
+            window.addEventListener("beforeunload", function () {
+                source.close();
+            });
+
             startTime = Date.now();
         }
 

@@ -14,6 +14,8 @@ const INITIAL_BACKGROUND = 127;
 const INITIAL_STIMULUS = 127;
 const ROUTER_URL = "http://192.168.4.1";
 
+const trialTD = document.getElementById("trial-td");
+const trialTimeTD = document.getElementById("trial-time-td");
 const relativeTimeTD = document.getElementById("relative-time-td");
 const absoluteTimeTD = document.getElementById("absolute-time-td");
 const xTD = document.getElementById("x-td");
@@ -43,6 +45,8 @@ const backgroundRangeLabel = document.getElementById("backgroundRangeLabel");
 
 ipc.on("tap", (event, data) => {
     console.log(data);
+    trialTD.innerHTML = data.trial;
+    trialTimeTD.innerHTML = data.trialTime; 
     relativeTimeTD.innerHTML = data.relativeTime;
     absoluteTimeTD.innerHTML = data.absoluteTime;
     xTD.innerHTML = data.x.toString();

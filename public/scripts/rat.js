@@ -21,6 +21,7 @@ const Rat = (function () {
     const INITIAL_BACKGROUND_BRIGHTNESS = 127;
 
     const ROUTER_URL = "http://192.168.4.1";
+    const ABSOLUTE_START_TIME = Date.now();
 
 
     function run() {
@@ -34,7 +35,6 @@ const Rat = (function () {
         };
         let direction;
         let stopAnimation = true;
-        let absoluteStartTime = 0;
         let relativeStartTime = 0;
         let currentTrial = 0;
         let stimulusType;
@@ -55,8 +55,12 @@ const Rat = (function () {
             const y = Math.round(e.clientY - rect.top);  //y position within the element.
             const targetHit = shape.inside({ x, y });
             const v = hidden ? "hidden" : "visible";
-            const resp = await fetch(`/tap?t=${currentTrial}&x=${x}&y=${y}&h=${targetHit}&at=${now - absoluteStartTime}&rt=${now - relativeStartTime}&tt=${relativeStartTime}&sh=${stimulusType}&sz=${size}&f=${Shapes.Shape.brightness}&c=${color}&b=${backgroundBrightness}&v=${v}`);
+            const relativeResponseTime = currentTrial > 0 ? now - relativeStartTime : 0;
+            const absoluteTrialTime = currentTrial >  0 ? relativeStartTime - ABSOLUTE_START_TIME : 0;
+            const resp = await fetch(`/tap?t=${currentTrial}&x=${x}&y=${y}&h=${targetHit}&at=${now - ABSOLUTE_START_TIME}&rt=${relativeResponseTime}&tt=${absoluteTrialTime}&sh=${stimulusType}&sz=${size}&f=${Shapes.Shape.brightness}&c=${color}&b=${backgroundBrightness}&v=${v}`);
             if (targetHit) {
+                hidden = true;
+                shape.clear();
                 await fetch(`${ROUTER_URL}/b`);
             }
             else {
@@ -256,8 +260,6 @@ const Rat = (function () {
             window.addEventListener("beforeunload", function () {
                 source.close();
             });
-
-            absoluteStartTime = Date.now();
         }
 
         initialise();

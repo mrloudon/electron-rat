@@ -113,17 +113,21 @@ expressApp.get("/events", async function (req, res) {
 expressApp.get("/tap", function (req, res) {
     res.send("Tap OK");
     mainWindow.webContents.send("tap", {
+        trial: req.query.t,
         x: req.query.x,
         y: req.query.y,
-        time: req.query.t,
+        absoluteTime: req.query.at,
+        relativeTime: req.query.rt,
+        trialTime: req.query.tt,
         shape: req.query.sh,
         success: req.query.h,
         color: req.query.c,
-        bgColor: req.query.b,
+        bgBrightness: req.query.b,
+        fgBrightness: req.query.f,
         size: req.query.sz,
         visible: req.query.v
     });
-    console.log(`X: ${req.query.x}, Y: ${req.query.y}, Success: ${req.query.hit}, Time: ${req.query.t}, Stimulus: ${req.query.stim}`);
+    console.log(`X: ${req.query.x}, Y: ${req.query.y}, Success: ${req.query.hit}, Abs Time: ${req.query.at}, Rel Time: ${req.query.rt}`);
 });
 
 function bindServer() {
@@ -186,6 +190,14 @@ ipcMain.on("center", () => {
 });
 ipcMain.on("reward", () => {
     sendCommand("reward");
+});
+ipcMain.on("disconnect", () => {
+    clients.forEach(client => {
+        sendCommand("close");
+        client.res.end();
+    });
+    clients.length = 0;
+    mainWindow.webContents.send("clients", clients.length);
 });
 
 ipcMain.handle("host", async () => host);

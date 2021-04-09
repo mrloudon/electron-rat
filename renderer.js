@@ -12,8 +12,10 @@ const ipc = require("electron").ipcRenderer;
 
 const INITIAL_BACKGROUND = 127;
 const INITIAL_STIMULUS = 127;
+const ROUTER_URL = "http://192.168.4.1";
 
-const timeTD = document.getElementById("time-td");
+const relativeTimeTD = document.getElementById("relative-time-td");
+const absoluteTimeTD = document.getElementById("absolute-time-td");
 const xTD = document.getElementById("x-td");
 const yTD = document.getElementById("y-td");
 const successTD = document.getElementById("success-td");
@@ -21,6 +23,7 @@ const shapeTD = document.getElementById("shape-td");
 const sizeTD = document.getElementById("size-td");
 const colorTD = document.getElementById("color-td");
 const backgroundTD = document.getElementById("background-td");
+const foregroundTD = document.getElementById("foreground-td");
 const visibleTD = document.getElementById("visible-td");
 const hostSpan = document.getElementById("host-span");
 const clientsSpan = document.getElementById("clients-span");
@@ -30,7 +33,9 @@ const sizeBtns = document.querySelectorAll(".size-btn");
 const visibilityBtns = document.querySelectorAll(".visibility-btn");
 const animationBtns = document.querySelectorAll(".animation-btn");
 const positionBtns = document.querySelectorAll(".position-btn");
+const allRadioBtns = document.querySelectorAll(".radio-btn");
 const rewardBtn = document.getElementById("reward-btn");
+const disconnectBtn = document.getElementById("disconnect-btn");
 const stimulusRange = document.getElementById("stimulusRange");
 const stimulusRangeLabel = document.getElementById("stimulusRangeLabel");
 const backgroundRange = document.getElementById("backgroundRange");
@@ -38,14 +43,16 @@ const backgroundRangeLabel = document.getElementById("backgroundRangeLabel");
 
 ipc.on("tap", (event, data) => {
     console.log(data);
-    timeTD.innerHTML = data.time.toString();
+    relativeTimeTD.innerHTML = data.relativeTime;
+    absoluteTimeTD.innerHTML = data.absoluteTime;
     xTD.innerHTML = data.x.toString();
     yTD.innerHTML = data.y.toString();
     successTD.innerHTML = data.success;
     shapeTD.innerHTML = data.shape;
     sizeTD.innerHTML = data.size;
     colorTD.innerHTML = data.color;
-    backgroundTD.innerHTML = data.bgColor;
+    backgroundTD.innerHTML = data.bgBrightness;
+    foregroundTD.innerHTML = data.fgBrightness;
     visibleTD.innerHTML = data.visible;
 });
 
@@ -141,11 +148,19 @@ function positionBtnClick(event) {
     }
 }
 
-function rewardBtnClick(event){
-    ipc.send("reward");
+async function rewardBtnClick(event){
     const target = event.currentTarget;
     target.disabled = true;
+    await fetch(`${ROUTER_URL}/b`);
     setTimeout(() => target.disabled = false, 2000);
+}
+
+function disconnectBtnClick(event){
+    ipc.send("disconnect");
+    const target = event.currentTarget;
+    target.disabled = true;
+    setTimeout(() => target.disabled = false, 1000);
+    resetUI();
 }
 
 function attachListeners() {
@@ -168,6 +183,7 @@ function attachListeners() {
         btn.addEventListener("click", positionBtnClick);
     }
     rewardBtn.addEventListener("click", rewardBtnClick);
+    disconnectBtn.addEventListener("click", disconnectBtnClick);
     stimulusRange.oninput = function() {
         ipc.send("foreground", this.value);
         stimulusRangeLabel.innerHTML = this.value;
@@ -178,13 +194,19 @@ function attachListeners() {
     };
 }
 
-function initialise(){
-    attachListeners();
+function resetUI(){
     backgroundRange.value = INITIAL_BACKGROUND;
     stimulusRange.value = INITIAL_STIMULUS;
     backgroundRangeLabel.innerHTML = INITIAL_BACKGROUND;
     stimulusRangeLabel.innerHTML = INITIAL_STIMULUS;
+    for (const btn of allRadioBtns) {
+        btn.style.backgroundColor = "rgb(239,239,239)";
+    }
+}
 
+function initialise(){
+    attachListeners();
+    resetUI();
     ipc.on("clients", (event, message) => {
         clientsSpan.innerHTML = message;
     });

@@ -6,20 +6,23 @@ const Rat = (function () {
     const CIRCLE_SMALL_R = CM_1;
     const STAR_SMALL_R1 = 1.25 * CM_1;
     const STAR_SMALL_R2 = 0.75 * CM_1;
-/*    const SQUARE_SMALL_SIDE = 2 * CM_1;
-    
-     const CIRCLE_LARGE_R = 2 * CM_1;
-    const SQUARE_LARGE_SIDE = 3 * CM_1;
-     */
+    /*    const SQUARE_SMALL_SIDE = 2 * CM_1;
+        
+         const CIRCLE_LARGE_R = 2 * CM_1;
+        const SQUARE_LARGE_SIDE = 3 * CM_1;
+         */
     const LEFT_X = 150;
     const RIGHT_X = 850;
     const CENTER_X = 500;
     const POSITION_Y = 300;
     const ANIMATION_STEP = 4;
 
+    const INITIAL_STIMULUS_BRIGHTNESS = 127;
+    const INITIAL_BACKGROUND_BRIGHTNESS = 127;
+
     const ROUTER_URL = "http://192.168.4.1";
 
-    
+
     function run() {
         const source = new EventSource("/events");
         const statusSpan = document.getElementById("status-span");
@@ -31,21 +34,28 @@ const Rat = (function () {
         };
         let direction;
         let stopAnimation = true;
-        let startTime, stimulusType; 
-        let color = "green"; 
-        let brightness = 255;
+        let absoluteStartTime = 0;
+        let relativeStartTime = 0;
+        let currentTrial = 0;
+        let stimulusType;
+        let color = "green";
         let size = "small";
-        let backgroundColor = "white";
+        let backgroundBrightness = INITIAL_BACKGROUND_BRIGHTNESS;
         let shape;
         let hidden = true;
 
-        async function onClick(e) {
+        function getBackgroundColor() {
+            return `rgb(${backgroundBrightness},${backgroundBrightness},${backgroundBrightness})`;
+        }
+
+        async function onTap(e) {
+            const now = Date.now();
             const rect = e.target.getBoundingClientRect();
             const x = Math.round(e.clientX - rect.left); //x position within the element.
             const y = Math.round(e.clientY - rect.top);  //y position within the element.
             const targetHit = shape.inside({ x, y });
             const v = hidden ? "hidden" : "visible";
-            const resp = await fetch(`/tap?x=${x}&y=${y}&h=${targetHit}&t=${Date.now() - startTime}&sh=${stimulusType}&sz=${size}&c=${color}&b=${backgroundColor}&v=${v}`);
+            const resp = await fetch(`/tap?t=${currentTrial}&x=${x}&y=${y}&h=${targetHit}&at=${now - absoluteStartTime}&rt=${now - relativeStartTime}&tt=${relativeStartTime}&sh=${stimulusType}&sz=${size}&f=${Shapes.Shape.brightness}&c=${color}&b=${backgroundBrightness}&v=${v}`);
             if (targetHit) {
                 await fetch(`${ROUTER_URL}/b`);
             }
@@ -90,15 +100,15 @@ const Rat = (function () {
         }
 
         function attachListeners() {
-            canvas.addEventListener("mousedown", onClick);
+            canvas.addEventListener("mousedown", onTap);
         }
 
         function messageHandler(message) {
             let data;
-            try{
+            try {
                 data = JSON.parse(message.data);
             }
-            catch(e){
+            catch (e) {
                 console.log(e.message);
                 console.log(message);
                 return;
@@ -121,6 +131,8 @@ const Rat = (function () {
                     statusSpan.innerHTML = "Show stimulus";
                     shape && shape.draw();
                     hidden = false;
+                    relativeStartTime = Date.now();
+                    currentTrial++;
                     break;
                 case "hide":
                     statusSpan.innerHTML = "Hide stimulus";
@@ -128,13 +140,16 @@ const Rat = (function () {
                     hidden = true;
                     break;
                 case "background":
-                    backgroundColor = `rgb(${data.value},${data.value},${data.value})`;
-                    statusSpan.innerHTML = "Background luminance";
-                    canvas.style.backgroundColor = backgroundColor;
+                    backgroundBrightness = data.value;
+                    statusSpan.innerHTML = `Background luminance: ${backgroundBrightness}`;
+                    canvas.style.backgroundColor = getBackgroundColor();
                     break;
                 case "foreground":
-                    statusSpan.innerHTML = "Stimulus luminance";
+                    statusSpan.innerHTML = `Stimulus luminance: ${data.value}`;
                     Shapes.Shape.brightness = data.value;
+                    if (!hidden) {
+                        shape.draw();
+                    }
                     break;
                 case "startAnimation":
                     statusSpan.innerHTML = "Start animation";
@@ -167,7 +182,6 @@ const Rat = (function () {
                     shape.clear();
                     Shapes.Star.setSize("small");
                     Shapes.Circle.setSize("small");
-                    //Square.setSize("small");
                     if (!hidden) {
                         shape.draw();
                     }
@@ -178,7 +192,6 @@ const Rat = (function () {
                     shape.clear();
                     Shapes.Star.setSize("large");
                     Shapes.Circle.setSize("large");
-                    //Square.setSize("large");
                     if (!hidden) {
                         shape.draw();
                     }
@@ -216,6 +229,7 @@ const Rat = (function () {
                     statusSpan.innerHTML = "Reward";
                     break;
             }
+            fetch(`${ROUTER_URL}/c`);
         }
 
         async function initialise() {
@@ -229,19 +243,21 @@ const Rat = (function () {
                 console.log("There was an EventSource error:", e);
             });
             attachListeners();
-            Shapes.Circle.initialise(context, animationPosition, CIRCLE_SMALL_R, color, brightness);
-            Shapes.Star.initialise(context, animationPosition, 7, STAR_SMALL_R1, STAR_SMALL_R2, color, brightness);
-            canvas.style.backgroundColor = backgroundColor;
+            Shapes.Circle.initialise(context, animationPosition, CIRCLE_SMALL_R, color, INITIAL_STIMULUS_BRIGHTNESS);
+            Shapes.Star.initialise(context, animationPosition, 7, STAR_SMALL_R1, STAR_SMALL_R2, color, INITIAL_STIMULUS_BRIGHTNESS);
+
+            backgroundBrightness = INITIAL_BACKGROUND_BRIGHTNESS;
+            canvas.style.backgroundColor = getBackgroundColor();
 
             shape = Shapes.Circle;
             stimulusType = "circle";
             direction = ANIMATION_STEP;
-           
+
             window.addEventListener("beforeunload", function () {
                 source.close();
             });
 
-            startTime = Date.now();
+            absoluteStartTime = Date.now();
         }
 
         initialise();

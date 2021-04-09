@@ -33,7 +33,7 @@ const Shapes = (function () {
     }
 
     const Shape = {
-        brightness: 123,
+        brightness: 127,
         color: "green",
 
         get rgb() {

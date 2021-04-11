@@ -64,7 +64,7 @@ const Rat = (function () {
                 await fetch(`${ROUTER_URL}/b`);
             }
             else {
-                await fetch(`${ROUTER_URL}/a`);
+                fetch(`${ROUTER_URL}/a`);
             }
             statusSpan.innerHTML = resp.statusText;
         }

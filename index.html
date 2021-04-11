@@ -15,22 +15,22 @@
     <div class="grid-4-container">
         <fieldset>
             <legend>Stimulus Shape</legend>
-            <button type="button" class="radio-btn shape-btn">Circle</button>
+            <button type="button" class="radio-btn shape-btn  default-btn">Circle</button>
             <button type="button" class="radio-btn shape-btn">Star</button>
         </fieldset>
         <fieldset>
             <legend>Stimulus Colour</legend>
-            <button type="button" class="radio-btn color-btn">Green</button>
+            <button type="button" class="radio-btn color-btn  default-btn">Green</button>
             <button type="button" class="radio-btn color-btn">Grey</button>
         </fieldset>
         <fieldset>
             <legend>Stimulus Size</legend>
-            <button type="button" class="radio-btn size-btn">Small</button>
+            <button type="button" class="radio-btn size-btn  default-btn">Small</button>
             <button type="button" class="radio-btn size-btn">Large</button>
         </fieldset>
         <fieldset>
             <legend>Stimulus Position</legend>
-            <button type="button" class="radio-btn position-btn">Left</button>
+            <button type="button" class="radio-btn position-btn  default-btn">Left</button>
             <button type="button" class="radio-btn position-btn">Centre</button>
             <button type="button" class="radio-btn position-btn">Right</button>
         </fieldset>
@@ -39,7 +39,7 @@
         <fieldset>
             <legend>Animation</legend>
             <button type="button" class="radio-btn animation-btn">Start</button>
-            <button type="button" class="radio-btn animation-btn">Stop</button>
+            <button type="button" class="radio-btn animation-btn default-btn">Stop</button>
         </fieldset>
         <fieldset style="padding-top: 15px;">
            <!--  <legend>Automatic Controls</legend>
@@ -49,7 +49,7 @@
         <fieldset>
             <legend>Manual Controls</legend>
             <button type="button" class="radio-btn visibility-btn">Show Stimulus</button>
-            <button type="button" class="radio-btn visibility-btn">Hide Stimulus</button>
+            <button type="button" class="radio-btn visibility-btn  default-btn">Hide Stimulus</button>
             <button type="button" id="reward-btn" class="ordinary-btn">Reward</button>
         </fieldset>
     </div>
@@ -74,6 +74,9 @@
             </div>
             <div  style="padding-top: 10px;">
                 <span class="feedback-label">N Clients:</span> <span id="clients-span" class="feedback">&mdash;</span>
+            </div>
+            <div  style="padding-top: 10px;">
+                <span class="feedback-label">Status:</span> <span id="server-status-span" class="feedback">&mdash;</span>
             </div>
             <div>
                 <button type="button" id="disconnect-btn" class="ordinary-btn">Disconnect Clients</button>

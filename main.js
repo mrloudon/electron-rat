@@ -49,7 +49,10 @@ function createWindow() {
     mainWindow.once("ready-to-show", () => {
         mainWindow.setMenuBarVisibility(false);
         mainWindow.show();
-        mainWindow.webContents.send("clients", clients.length);
+        mainWindow.webContents.send("clients", {
+             nClients: clients.length,
+             message: "Ready."
+        });
     });
 
 }
@@ -101,12 +104,20 @@ expressApp.get("/events", async function (req, res) {
     }
     clients.push(newClient);
     console.log("Added new client", clientId);
-    mainWindow.webContents.send("clients", clients.length);
+    mainWindow.webContents.send("clients", {
+        nClients: clients.length,
+        message: "New client connected.",
+        status: "connect"
+    });
 
     req.on("close", () => {
         console.log(`Connection to ${clientId} closed`);
         clients = clients.filter(client => client.id !== clientId);
-        mainWindow.webContents.send("clients", clients.length);
+        mainWindow.webContents.send("clients", {
+            nClients: clients.length,
+            message: "Client disconnected.",
+            status: "disconnect"
+        });
     });
 });
 
@@ -197,7 +208,10 @@ ipcMain.on("disconnect", () => {
         client.res.end();
     });
     clients.length = 0;
-    mainWindow.webContents.send("clients", clients.length);
+    mainWindow.webContents.send("clients", {
+        nClients: clients.length,
+        message: "No clients."
+    });
 });
 
 ipcMain.handle("host", async () => host);

@@ -12,7 +12,10 @@ const ipc = require("electron").ipcRenderer;
 
 const INITIAL_BACKGROUND = 127;
 const INITIAL_STIMULUS = 127;
+const ACTIVE_BTN = "#FCF6CF";
+const INACTIVE_BTN = "rgb(239,239,239)";
 const ROUTER_URL = "http://192.168.4.1";
+
 
 const trialTD = document.getElementById("trial-td");
 const trialTimeTD = document.getElementById("trial-time-td");
@@ -29,6 +32,7 @@ const foregroundTD = document.getElementById("foreground-td");
 const visibleTD = document.getElementById("visible-td");
 const hostSpan = document.getElementById("host-span");
 const clientsSpan = document.getElementById("clients-span");
+const serverStatusSpan = document.getElementById("server-status-span");
 const shapeBtns = document.querySelectorAll(".shape-btn");
 const colorBtns = document.querySelectorAll(".color-btn");
 const sizeBtns = document.querySelectorAll(".size-btn");
@@ -42,6 +46,7 @@ const stimulusRange = document.getElementById("stimulusRange");
 const stimulusRangeLabel = document.getElementById("stimulusRangeLabel");
 const backgroundRange = document.getElementById("backgroundRange");
 const backgroundRangeLabel = document.getElementById("backgroundRangeLabel");
+
 
 ipc.on("tap", (event, data) => {
     console.log(data);
@@ -58,13 +63,17 @@ ipc.on("tap", (event, data) => {
     backgroundTD.innerHTML = data.bgBrightness;
     foregroundTD.innerHTML = data.fgBrightness;
     visibleTD.innerHTML = data.visible;
+    if(data.success === "true"){
+        visibilityBtns[0].style.backgroundColor = INACTIVE_BTN;
+        visibilityBtns[1].style.backgroundColor = ACTIVE_BTN;
+    }
 });
 
 function shapeBtnClick(event) {
     for (const btn of shapeBtns) {
-        btn.style.backgroundColor = "rgb(239,239,239)";
+        btn.style.backgroundColor = INACTIVE_BTN;
     }
-    event.currentTarget.style.backgroundColor = "#FCF6CF";
+    event.currentTarget.style.backgroundColor = ACTIVE_BTN;
     switch (event.currentTarget.innerText) {
         case "Square": ipc.send("square");
             break;
@@ -77,9 +86,9 @@ function shapeBtnClick(event) {
 
 function colorBtnClick(event) {
     for (const btn of colorBtns) {
-        btn.style.backgroundColor = "rgb(239,239,239)";
+        btn.style.backgroundColor = INACTIVE_BTN;
     }
-    event.currentTarget.style.backgroundColor = "#FCF6CF";
+    event.currentTarget.style.backgroundColor = ACTIVE_BTN;
     switch (event.currentTarget.innerText) {
         case "Green": ipc.send("green");
             break;
@@ -90,9 +99,9 @@ function colorBtnClick(event) {
 
 function sizeBtnClick(event) {
     for (const btn of sizeBtns) {
-        btn.style.backgroundColor = "rgb(239,239,239)";
+        btn.style.backgroundColor = INACTIVE_BTN;
     }
-    event.currentTarget.style.backgroundColor = "#FCF6CF";
+    event.currentTarget.style.backgroundColor = ACTIVE_BTN;
     switch (event.currentTarget.innerText) {
         case "Small": ipc.send("small");
             break;
@@ -104,9 +113,9 @@ function sizeBtnClick(event) {
 
 function visibilityBtnClick(event) {
     for (const btn of visibilityBtns) {
-        btn.style.backgroundColor = "rgb(239,239,239)";
+        btn.style.backgroundColor = INACTIVE_BTN;
     }
-    event.currentTarget.style.backgroundColor = "#FCF6CF";
+    event.currentTarget.style.backgroundColor = ACTIVE_BTN;
     switch (event.currentTarget.innerText) {
         case "Show Stimulus":
             ipc.send("show");
@@ -119,9 +128,9 @@ function visibilityBtnClick(event) {
 
 function animationBtnClick(event) {
     for (const btn of animationBtns) {
-        btn.style.backgroundColor = "rgb(239,239,239)";
+        btn.style.backgroundColor = INACTIVE_BTN;
     }
-    event.currentTarget.style.backgroundColor = "#FCF6CF";
+    event.currentTarget.style.backgroundColor = ACTIVE_BTN;
     console.log(event.currentTarget.innerText);
     switch (event.currentTarget.innerText) {
         case "Start":
@@ -135,9 +144,9 @@ function animationBtnClick(event) {
 
 function positionBtnClick(event) {
     for (const btn of positionBtns) {
-        btn.style.backgroundColor = "rgb(239,239,239)";
+        btn.style.backgroundColor = INACTIVE_BTN;
     }
-    event.currentTarget.style.backgroundColor = "#FCF6CF";
+    event.currentTarget.style.backgroundColor = ACTIVE_BTN;
     console.log(event.currentTarget.innerText);
     switch (event.currentTarget.innerText) {
         case "Left":
@@ -199,20 +208,28 @@ function attachListeners() {
 }
 
 function resetUI(){
+    const defaultBtns = document.querySelectorAll(".default-btn");
     backgroundRange.value = INITIAL_BACKGROUND;
     stimulusRange.value = INITIAL_STIMULUS;
     backgroundRangeLabel.innerHTML = INITIAL_BACKGROUND;
     stimulusRangeLabel.innerHTML = INITIAL_STIMULUS;
     for (const btn of allRadioBtns) {
-        btn.style.backgroundColor = "rgb(239,239,239)";
+        btn.style.backgroundColor = INACTIVE_BTN;
     }
+    defaultBtns.forEach(btn => btn.style.backgroundColor = ACTIVE_BTN);
 }
 
 function initialise(){
     attachListeners();
     resetUI();
-    ipc.on("clients", (event, message) => {
-        clientsSpan.innerHTML = message;
+    ipc.on("clients", (event, data) => {
+        console.log(data);
+        clientsSpan.innerHTML = data.nClients;
+        serverStatusSpan.innerHTML = data.message;
+        if(data.status === "disconnect"){
+            console.log("Reset");
+            resetUI();
+        }
     });
 
     ipc.invoke("host")

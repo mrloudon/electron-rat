@@ -24,6 +24,10 @@ const Rat = (function () {
     const ABSOLUTE_START_TIME = Date.now();
 
 
+    let experimentClock;
+    let relativeResponseTime = 0;
+    let open;
+
     function run() {
         const source = new EventSource("/events");
         const statusSpan = document.getElementById("status-span");
@@ -55,8 +59,8 @@ const Rat = (function () {
             const y = Math.round(e.clientY - rect.top);  //y position within the element.
             const targetHit = shape.inside({ x, y });
             const v = hidden ? "hidden" : "visible";
-            const relativeResponseTime = currentTrial > 0 ? now - relativeStartTime : 0;
-            const absoluteTrialTime = currentTrial >  0 ? relativeStartTime - ABSOLUTE_START_TIME : 0;
+            relativeResponseTime = currentTrial > 0 ? now - relativeStartTime : 0;
+            const absoluteTrialTime = currentTrial > 0 ? relativeStartTime - ABSOLUTE_START_TIME : 0;
             const resp = await fetch(`/tap?t=${currentTrial}&x=${x}&y=${y}&h=${targetHit}&at=${now - ABSOLUTE_START_TIME}&rt=${relativeResponseTime}&tt=${absoluteTrialTime}&sh=${stimulusType}&sz=${size}&f=${Shapes.Shape.brightness}&c=${color}&b=${backgroundBrightness}&v=${v}`);
             if (targetHit) {
                 hidden = true;
@@ -64,7 +68,7 @@ const Rat = (function () {
                 await fetch(`${ROUTER_URL}/b`);
             }
             else {
-                fetch(`${ROUTER_URL}/a`);
+                await fetch(`${ROUTER_URL}/a`);
             }
             statusSpan.innerHTML = resp.statusText;
         }
@@ -120,6 +124,7 @@ const Rat = (function () {
             switch (data.command) {
                 case "close":
                     console.log("Closing!");
+                    open = false;
                     source.close();
                     statusSpan.innerHTML = "The server has closed the connection.";
                     break;
@@ -233,18 +238,19 @@ const Rat = (function () {
                     statusSpan.innerHTML = "Reward";
                     break;
             }
-            fetch(`${ROUTER_URL}/c`);
         }
 
         async function initialise() {
             source.addEventListener("open", () => {
                 statusSpan.innerHTML = "Connection to the server established";
+                open = true;
             });
 
             source.addEventListener("message", messageHandler);
             source.addEventListener("error", (e) => {
                 statusSpan.innerHTML = "<strong>There was an EventSource error!</strong> (check console for details)";
                 console.log("There was an EventSource error:", e);
+                open = false;
             });
             attachListeners();
             Shapes.Circle.initialise(context, animationPosition, CIRCLE_SMALL_R, color, INITIAL_STIMULUS_BRIGHTNESS);
@@ -259,7 +265,26 @@ const Rat = (function () {
 
             window.addEventListener("beforeunload", function () {
                 source.close();
+                open = false;
             });
+
+            console.log("Starting timer");
+            experimentClock = setInterval(async function () {
+                const now = Date.now();
+                if (open) {
+                    fetch(`/time?at=${now - ABSOLUTE_START_TIME}&rt=${relativeResponseTime}`)
+                        .catch(e => {
+                            window.clearInterval(experimentClock);
+                            experimentClock = null;
+                            statusSpan.innerHTML = e.message;
+                            console.log("Timer killed");
+                        });
+                }
+                else {
+                    clearInterval(experimentClock);
+                    experimentClock = null;
+                }
+            }, 1000);
         }
 
         initialise();

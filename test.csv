@@ -1,0 +1,8 @@
+"Trial","Absolute Trial Time","Absolute RespnseTime","Relative Response Time","X","Y","Success","Visable","Shape","Colour","Size","Background Brightness","Foreground Brightness"
+"4","65334","66422","1088","166","288","true","visible","circle","green","small","127","127"
+"5","110254","111548","1294","161","302","true","visible","circle","green","small","127","127"
+"6","114463","115747","1284","527","296","true","visible","circle","green","small","127","127"
+"6","114463","117239","2776","276","514","false","hidden","circle","green","small","127","127"
+"6","114463","118392","3929","265","75","false","hidden","circle","green","small","127","127"
+"3","40834","46423","5589","171","304","true","visible","star","green","large","127","186"
+"4","48842","51534","2692","454","292","true","visible","star","green","large","127","186"

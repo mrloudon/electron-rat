@@ -12,110 +12,142 @@
 
 <body>
     <h3>Rat Trainer [Pilot Study]</h3>
-    <div class="grid-4-container">
-        <fieldset>
-            <legend>Stimulus Shape</legend>
-            <button type="button" class="radio-btn shape-btn  default-btn">Circle</button>
-            <button type="button" class="radio-btn shape-btn">Star</button>
-        </fieldset>
-        <fieldset>
-            <legend>Stimulus Colour</legend>
-            <button type="button" class="radio-btn color-btn  default-btn">Green</button>
-            <button type="button" class="radio-btn color-btn">Grey</button>
-        </fieldset>
-        <fieldset>
-            <legend>Stimulus Size</legend>
-            <button type="button" class="radio-btn size-btn  default-btn">Small</button>
-            <button type="button" class="radio-btn size-btn">Large</button>
-        </fieldset>
-        <fieldset>
-            <legend>Stimulus Position</legend>
-            <button type="button" class="radio-btn position-btn  default-btn">Left</button>
-            <button type="button" class="radio-btn position-btn">Centre</button>
-            <button type="button" class="radio-btn position-btn">Right</button>
-        </fieldset>
-    </div>
-    <div class="grid-3-container">
-        <fieldset>
-            <legend>Animation</legend>
-            <button type="button" class="radio-btn animation-btn">Start</button>
-            <button type="button" class="radio-btn animation-btn default-btn">Stop</button>
-        </fieldset>
-        <fieldset style="padding-top: 15px;">
-           <!--  <legend>Automatic Controls</legend>
-            <input type="checkbox" id="autoReward" name="autoReward" checked>
-            <label for="autoReward" style="font-family: Arial, Helvetica, sans-serif;"> Auto Reward</label> -->
-        </fieldset>
-        <fieldset>
-            <legend>Manual Controls</legend>
-            <button type="button" class="radio-btn visibility-btn">Show Stimulus</button>
-            <button type="button" class="radio-btn visibility-btn  default-btn">Hide Stimulus</button>
-            <button type="button" id="reward-btn" class="ordinary-btn">Reward</button>
-        </fieldset>
-    </div>
-    <div>
-        <fieldset>
-            <legend>Stimulus Luminance</legend>
-            <input type="range" min="0" max="255" value="50" class="slider" id="stimulusRange" name="stimulusRange">
-            <label for="stimulusRange" id="stimulusRangeLabel">0</label>
-        </fieldset>
-        <fieldset>
-            <legend>Background Luminance</legend>
-            <input type="range" min="0" max="255" value="50" class="slider" id="backgroundRange" name="backgroundRange">
-            <label for="backgroundRange" id="backgroundRangeLabel">0</label>
-        </fieldset>
-    </div>
-
-    <fieldset>
-        <legend>Web Server</legend>
-        <div class="grid-4-container">
-            <div style="padding-top: 10px;">
-                <span class="feedback-label">Server IP:</span> <span id="host-span" class="feedback">&mdash;</span>
-            </div>
-            <div  style="padding-top: 10px;">
-                <span class="feedback-label">N Clients:</span> <span id="clients-span" class="feedback">&mdash;</span>
-            </div>
-            <div  style="padding-top: 10px;">
-                <span class="feedback-label">Status:</span> <span id="server-status-span" class="feedback">&mdash;</span>
-            </div>
-            <div>
-                <button type="button" id="disconnect-btn" class="ordinary-btn">Disconnect Clients</button>
-            </div>
+    <div id="main-page">
+        <div class="grid-time-container">
+            <fieldset>
+                <legend>
+                    Absolute Time
+                </legend>
+                <div class="center">
+                    <span class="time-span" id="absolute-hms-span">00:00:00</span><br>
+                    <small id="absolute-s-span">0</small>
+                </div>
+            </fieldset>
+            <fieldset>
+                <legend>
+                    Relative Time
+                </legend>
+                <div class="center">
+                    <span class="time-span" id="relative-hms-span">00:00:00</span><br>
+                    <small id="relative-s-span">0</small>
+                </div>
+            </fieldset>
+            <fieldset class="feedback-label">
+                <legend>
+                    Output File
+                </legend>
+                <button type="button" class="ordinary-btn" id="file-btn">Select File</button>
+                Writing results to: <span id="file-span">Not saving</span>
+            </fieldset>
         </div>
-    </fieldset>
+        <div class="grid-4-container">
+            <fieldset>
+                <legend>Stimulus Shape</legend>
+                <button type="button" class="radio-btn shape-btn  default-btn">Circle</button>
+                <button type="button" class="radio-btn shape-btn">Star</button>
+            </fieldset>
+            <fieldset>
+                <legend>Stimulus Colour</legend>
+                <button type="button" class="radio-btn color-btn  default-btn">Green</button>
+                <button type="button" class="radio-btn color-btn">Grey</button>
+            </fieldset>
+            <fieldset>
+                <legend>Stimulus Size</legend>
+                <button type="button" class="radio-btn size-btn  default-btn">Small</button>
+                <button type="button" class="radio-btn size-btn">Large</button>
+            </fieldset>
+            <fieldset>
+                <legend>Stimulus Position</legend>
+                <button type="button" class="radio-btn position-btn  default-btn">Left</button>
+                <button type="button" class="radio-btn position-btn">Centre</button>
+                <button type="button" class="radio-btn position-btn">Right</button>
+            </fieldset>
+        </div>
+        <div class="grid-3-container">
+            <fieldset>
+                <legend>Animation</legend>
+                <button type="button" class="radio-btn animation-btn">Start</button>
+                <button type="button" class="radio-btn animation-btn default-btn">Stop</button>
+            </fieldset>
+            <fieldset style="padding-top: 15px;">
+                <!--  <legend>Automatic Controls</legend>
+                <input type="checkbox" id="autoReward" name="autoReward" checked>
+                <label for="autoReward" style="font-family: Arial, Helvetica, sans-serif;"> Auto Reward</label> -->
+            </fieldset>
+            <fieldset>
+                <legend>Manual Controls</legend>
+                <button type="button" class="radio-btn visibility-btn">Show Stimulus</button>
+                <button type="button" class="radio-btn visibility-btn  default-btn">Hide Stimulus</button>
+                <button type="button" id="reward-btn" class="urgent-btn">Reward</button>
+            </fieldset>
+        </div>
+        <div>
+            <fieldset>
+                <legend>Stimulus Luminance</legend>
+                <input type="range" min="0" max="255" value="50" class="slider" id="stimulusRange" name="stimulusRange">
+                <label for="stimulusRange" id="stimulusRangeLabel">0</label>
+            </fieldset>
+            <fieldset>
+                <legend>Background Luminance</legend>
+                <input type="range" min="0" max="255" value="50" class="slider" id="backgroundRange"
+                    name="backgroundRange">
+                <label for="backgroundRange" id="backgroundRangeLabel">0</label>
+            </fieldset>
+        </div>
 
-    <table>
-        <tr>
-            <th>Trial</th>
-            <th>Absolute<br>Trial Time</th>
-            <th>Absolute<br>Response Time</th>
-            <th>Relative<br>Response Time</th>
-            <th>X</th>
-            <th>Y</th>
-            <th>Success</th>
-            <th>Visible</th>
-            <th>Shape</th>
-            <th>Colour</th>
-            <th>Size</th>
-            <th>Background<br>Brightness</th>
-            <th>Foreground<br>Brightness</th>
-        </tr>
-        <tr>
-            <td id="trial-td">&#8212;</td>
-            <td id="trial-time-td">&#8212;</td>
-            <td id="absolute-time-td">&#8212;</td>
-            <td id="relative-time-td">&#8212;</td>
-            <td id="x-td">&#8212;</td>
-            <td id="y-td">&#8212;</td>
-            <td id="success-td">&#8212;</td>
-            <td id="visible-td">&#8212;</td>
-            <td id="shape-td">&#8212;</td>
-            <td id="color-td">&#8212;</td>
-            <td id="size-td">&#8212;</td>
-            <td id="background-td">&#8212;</td>
-            <td id="foreground-td">&#8212;</td>
-        </tr>
-    </table>
+        <fieldset>
+            <legend>Web Server</legend>
+            <div class="grid-4-container">
+                <div style="padding-top: 10px;">
+                    <span class="feedback-label">Server IP:</span> <span id="host-span" class="feedback">&mdash;</span>
+                </div>
+                <div style="padding-top: 10px;">
+                    <span class="feedback-label">N Clients:</span> <span id="clients-span"
+                        class="feedback">&mdash;</span>
+                </div>
+                <div style="padding-top: 10px;">
+                    <span class="feedback-label">Status:</span> <span id="server-status-span"
+                        class="feedback">&mdash;</span>
+                </div>
+                <div>
+                    <button type="button" id="disconnect-btn" class="urgent-btn">Disconnect Clients</button>
+                </div>
+            </div>
+        </fieldset>
+
+        <table>
+            <tr>
+                <th>Trial</th>
+                <th>Absolute<br>Trial Time</th>
+                <th>Absolute<br>Response Time</th>
+                <th>Relative<br>Response Time</th>
+                <th>X</th>
+                <th>Y</th>
+                <th>Success</th>
+                <th>Visible</th>
+                <th>Shape</th>
+                <th>Colour</th>
+                <th>Size</th>
+                <th>Background<br>Brightness</th>
+                <th>Foreground<br>Brightness</th>
+            </tr>
+            <tr>
+                <td id="trial-td">&#8212;</td>
+                <td id="trial-time-td">&#8212;</td>
+                <td id="absolute-time-td">&#8212;</td>
+                <td id="relative-time-td">&#8212;</td>
+                <td id="x-td">&#8212;</td>
+                <td id="y-td">&#8212;</td>
+                <td id="success-td">&#8212;</td>
+                <td id="visible-td">&#8212;</td>
+                <td id="shape-td">&#8212;</td>
+                <td id="color-td">&#8212;</td>
+                <td id="size-td">&#8212;</td>
+                <td id="background-td">&#8212;</td>
+                <td id="foreground-td">&#8212;</td>
+            </tr>
+        </table>
+    </div>
     <script src="./renderer.js"></script>
 </body>
 

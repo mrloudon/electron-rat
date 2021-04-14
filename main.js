@@ -1,11 +1,15 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 // Need networkInterfaces to figure out the host IP
 const { networkInterfaces } = require("os");
 const express = require("express");
 const path = require("path");
+const fs = require("fs");
+
+const CSV_HEADER = `"Trial","Absolute Trial Time","Absolute RespnseTime","Relative Response Time","X","Y","Success","Visable","Shape","Colour","Size","Background Brightness","Foreground Brightness"\n`;
 const PORT = 80;
 let host;
+let fName;
 let clients = [];
 
 const expressApp = express();
@@ -29,6 +33,24 @@ function getHostIP() {
     return "127.0.0.1";
 }
 
+
+function writeCSV(csv) {
+    if (!fName) {
+        return;
+    }
+    try {
+        if (!fs.existsSync(fName)) {
+            fs.writeFileSync(fName, CSV_HEADER);
+        }
+        fs.appendFile(fName, csv, function (err) {
+            if (err) throw err;
+            console.log('Saved!');
+        });
+    } catch (err) {
+        console.error(err)
+    }
+}
+
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1024,
@@ -50,23 +72,22 @@ function createWindow() {
         mainWindow.setMenuBarVisibility(false);
         mainWindow.show();
         mainWindow.webContents.send("clients", {
-             nClients: clients.length,
-             message: "Ready."
+            nClients: clients.length,
+            message: "Ready."
         });
     });
-
 }
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-    createWindow()
+    createWindow();
 
     app.on("activate", function () {
         // On macOS it"s common to re-create a window in the app when the
         // dock icon is clicked and there are no other windows open.
-        if (BrowserWindow.getAllWindows().length === 0) createWindow()
+        if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
 });
 
@@ -138,7 +159,15 @@ expressApp.get("/tap", function (req, res) {
         size: req.query.sz,
         visible: req.query.v
     });
-    console.log(`X: ${req.query.x}, Y: ${req.query.y}, Success: ${req.query.hit}, Abs Time: ${req.query.at}, Rel Time: ${req.query.rt}`);
+    writeCSV(`"${req.query.t}","${req.query.tt}","${req.query.at}","${req.query.rt}","${req.query.x}","${req.query.y}","${req.query.h}","${req.query.v}","${req.query.sh}","${req.query.c}","${req.query.sz}","${req.query.b}","${req.query.f}"\n`);
+});
+
+expressApp.get("/time", function (req, res) {
+    res.send("Time OK");
+    mainWindow.webContents.send("time", {
+        absoluteTime: req.query.at,
+        relativeTime: req.query.rt
+    });
 });
 
 function bindServer() {
@@ -213,7 +242,16 @@ ipcMain.on("disconnect", () => {
         message: "No clients."
     });
 });
-
 ipcMain.handle("host", async () => host);
+ipcMain.handle("fName", async () => {
+    fName = dialog.showSaveDialogSync({
+        title: "Output file name",
+        filters: [{
+            name: "CSV files",
+            extensions: ["csv"]
+        }]
+    });
+    return fName ? path.basename(fName) : "Not saving";
+});
 
 bindServer();

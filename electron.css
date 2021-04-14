@@ -1,4 +1,5 @@
-h3, h4 {
+h3,
+h4 {
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
@@ -17,9 +18,14 @@ body {
     padding: 5px;
 }
 
-#time-span {
+
+#file-span {
+    color: green;
+}
+
+.time-span {
     font-family: 'Courier New', Courier, monospace;
-    padding: 5px;
+    font-size: 20px;
 }
 
 #tap-span {
@@ -40,7 +46,11 @@ body {
     border-radius: 5px;
 }
 
-.ordinary-btn {
+.radio-btn:hover {
+    border-color: #ccc;
+}
+
+.urgent-btn {
     margin-left: 5px;
     padding: 10px 10px;
     border-style: solid;
@@ -48,6 +58,24 @@ body {
     border-width: 1px;
     border-radius: 5px;
     background-color: #FADBD8;
+}
+
+.urgent-btn:hover {
+    background-color: pink;
+}
+
+.ordinary-btn:hover{
+    background-color: rgb(230,230,230);
+}
+
+.ordinary-btn {
+    margin-left: 5px;
+    padding: 10px 10px;
+    border-style: solid;
+    border-color: #aaa;
+    border-width: 1px;
+    border-radius: 5px;
+    background-color: rgb(239,239,239);
 }
 
 table {
@@ -66,7 +94,7 @@ th {
 }
 
 legend {
-    font-family:  sans-serif;
+    font-family: sans-serif;
 }
 
 fieldset {
@@ -75,7 +103,8 @@ fieldset {
     border-radius: 5px;
 }
 
-#backgroundRangeLabel, #stimulusRangeLabel {
+#backgroundRangeLabel,
+#stimulusRangeLabel {
     font-family: 'Courier New', Courier, monospace;
     font-size: large;
     font-weight: bold;
@@ -90,20 +119,47 @@ fieldset {
     font-family: Arial, Helvetica, sans-serif;
 }
 
+.grid-2-container {
+    display: grid;
+    grid-template-columns: auto 50%;
+    row-gap: 10px;
+    column-gap: 5px;
+}
+
 .grid-3-container {
     display: grid;
     grid-template-columns: auto 40% 40%;
     row-gap: 10px;
     column-gap: 5px;
-  }
+}
+
+.grid-time-container {
+    display: grid;
+    grid-template-columns: auto auto 50%;
+    row-gap: 10px;
+    column-gap: 5px;
+}
 
 .grid-4-container {
     display: grid;
     grid-template-columns: auto auto auto auto;
     row-gap: 10px;
     column-gap: 5px;
-  }
+}
 
 .slider {
     width: 95%;
+}
+
+.btn-div {
+    text-align: center;
+}
+
+.btn-div button {
+    margin-top: 20px;
+    background-color: rgb(239, 239, 239);
+}
+
+.center {
+    text-align: center;
 }

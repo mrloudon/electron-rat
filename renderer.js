@@ -18,6 +18,7 @@ const ROUTER_URL = "http://192.168.4.1";
 
 
 const trialTD = document.getElementById("trial-td");
+const responseTD = document.getElementById("response-td");
 const trialTimeTD = document.getElementById("trial-time-td");
 const relativeTimeTD = document.getElementById("relative-time-td");
 const absoluteTimeTD = document.getElementById("absolute-time-td");
@@ -27,8 +28,6 @@ const successTD = document.getElementById("success-td");
 const shapeTD = document.getElementById("shape-td");
 const sizeTD = document.getElementById("size-td");
 const colorTD = document.getElementById("color-td");
-const backgroundTD = document.getElementById("background-td");
-const foregroundTD = document.getElementById("foreground-td");
 const visibleTD = document.getElementById("visible-td");
 const hostSpan = document.getElementById("host-span");
 const clientsSpan = document.getElementById("clients-span");
@@ -51,10 +50,12 @@ const stimulusRange = document.getElementById("stimulusRange");
 const stimulusRangeLabel = document.getElementById("stimulusRangeLabel");
 const backgroundRange = document.getElementById("backgroundRange");
 const backgroundRangeLabel = document.getElementById("backgroundRangeLabel");
+const isiInput = document.getElementById("isi-ip");
+const autoCB = document.getElementById("auto-cb");
 
 ipc.on("time", (event, data) => {
 
-    function msToTime(diff){
+    function msToTime(diff) {
         let hours = Math.floor(diff / MILLIS_HR).toString();
         diff %= MILLIS_HR;
         let mins = Math.floor(diff / MILLIS_MIN).toString();
@@ -70,11 +71,11 @@ ipc.on("time", (event, data) => {
         if (secs.length < 2) {
             secs = "0" + secs;
         }
-        return  `${hours}:${mins}:${secs}`;
+        return `${hours}:${mins}:${secs}`;
     }
 
-    const at =  Number(data.absoluteTime);
-    const rt =  Number(data.relativeTime);
+    const at = Number(data.absoluteTime);
+    const rt = Number(data.relativeTime);
 
     absoluteSSpan.innerHTML = Math.round(Number(at / 1000));
     absoluteHmsSpan.innerHTML = msToTime(at);
@@ -85,6 +86,7 @@ ipc.on("time", (event, data) => {
 ipc.on("tap", (event, data) => {
     console.log(data);
     trialTD.innerHTML = data.trial;
+    responseTD.innerHTML = data.response;
     trialTimeTD.innerHTML = data.trialTime;
     relativeTimeTD.innerHTML = data.relativeTime;
     absoluteTimeTD.innerHTML = data.absoluteTime;
@@ -94,12 +96,19 @@ ipc.on("tap", (event, data) => {
     shapeTD.innerHTML = data.shape;
     sizeTD.innerHTML = data.size;
     colorTD.innerHTML = data.color;
-    backgroundTD.innerHTML = data.bgBrightness;
-    foregroundTD.innerHTML = data.fgBrightness;
     visibleTD.innerHTML = data.visible;
-    if (data.success === "true") {
+    if (data.success === "true" && data.visible === "visible") {
         visibilityBtns[0].style.backgroundColor = INACTIVE_BTN;
         visibilityBtns[1].style.backgroundColor = ACTIVE_BTN;
+        console.log("Correct tap");
+        if (autoCB.checked) {
+            console.log("Starting ISI timer");
+            setTimeout(() => {
+                ipc.send("show");
+                visibilityBtns[0].style.backgroundColor = ACTIVE_BTN;
+                visibilityBtns[1].style.backgroundColor = INACTIVE_BTN;
+            }, Number(isiInput.value) * 1000);
+        }
     }
 });
 
@@ -212,8 +221,7 @@ function fileBtnClick() {
     fileBtn.disabled = true;
     ipc.invoke("fName")
         .then(result => {
-            const message = result || "Not saving.";
-            document.getElementById("file-span").innerHTML = message;
+            document.getElementById("file-span").innerHTML = result;
             fileBtn.disabled = false;
         });
 }
@@ -277,25 +285,25 @@ function initialise() {
     ipc.invoke("host")
         .then(result => hostSpan.innerHTML = result);
 
-   /*  clockTimer = setInterval(() => {
-        let diff = Date.now() - startTime;
-        let hours = Math.floor(diff / MILLIS_HR).toString();
-        diff %= MILLIS_HR;
-        let mins = Math.floor(diff / MILLIS_MIN).toString();
-        diff %= MILLIS_MIN;
-        let secs = Math.floor(diff / MILLIS_SEC).toString();
-        diff %= MILLIS_SEC;
-        if (hours.length < 2) {
-            hours = "0" + hours;
-        }
-        if (mins.length < 2) {
-            mins = "0" + mins;
-        }
-        if (secs.length < 2) {
-            secs = "0" + secs;
-        }
-        absoluteHmsSpan.innerHTML = `${hours}:${mins}:${secs}`;
-    }, 1000); */
+    /*  clockTimer = setInterval(() => {
+         let diff = Date.now() - startTime;
+         let hours = Math.floor(diff / MILLIS_HR).toString();
+         diff %= MILLIS_HR;
+         let mins = Math.floor(diff / MILLIS_MIN).toString();
+         diff %= MILLIS_MIN;
+         let secs = Math.floor(diff / MILLIS_SEC).toString();
+         diff %= MILLIS_SEC;
+         if (hours.length < 2) {
+             hours = "0" + hours;
+         }
+         if (mins.length < 2) {
+             mins = "0" + mins;
+         }
+         if (secs.length < 2) {
+             secs = "0" + secs;
+         }
+         absoluteHmsSpan.innerHTML = `${hours}:${mins}:${secs}`;
+     }, 1000); */
 
 }
 

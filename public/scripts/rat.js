@@ -25,8 +25,22 @@ const Rat = (function () {
 
 
     let experimentClock;
-    let relativeResponseTime = 0;
     let open;
+
+    async function fetchWithTimeout(resource, options) {
+        const { timeout = 1000 } = options;
+
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeout);
+
+        const response = await fetch(resource, {
+            ...options,
+            signal: controller.signal
+        });
+        clearTimeout(id);
+
+        return response;
+    }
 
     function run() {
         const source = new EventSource("/events");
@@ -37,10 +51,12 @@ const Rat = (function () {
             x: LEFT_X,
             y: POSITION_Y
         };
+        let currentPosition = "Left";
         let direction;
         let stopAnimation = true;
         let relativeStartTime = 0;
         let currentTrial = 0;
+        let currentResponse = 0;
         let stimulusType;
         let color = "green";
         let size = "small";
@@ -53,22 +69,41 @@ const Rat = (function () {
         }
 
         async function onTap(e) {
+            currentResponse++;
             const now = Date.now();
             const rect = e.target.getBoundingClientRect();
             const x = Math.round(e.clientX - rect.left); //x position within the element.
             const y = Math.round(e.clientY - rect.top);  //y position within the element.
             const targetHit = shape.inside({ x, y });
             const v = hidden ? "hidden" : "visible";
-            relativeResponseTime = currentTrial > 0 ? now - relativeStartTime : 0;
+            const relativeResponseTime = currentTrial > 0 ? now - relativeStartTime : 0;
             const absoluteTrialTime = currentTrial > 0 ? relativeStartTime - ABSOLUTE_START_TIME : 0;
-            const resp = await fetch(`/tap?t=${currentTrial}&x=${x}&y=${y}&h=${targetHit}&at=${now - ABSOLUTE_START_TIME}&rt=${relativeResponseTime}&tt=${absoluteTrialTime}&sh=${stimulusType}&sz=${size}&f=${Shapes.Shape.brightness}&c=${color}&b=${backgroundBrightness}&v=${v}`);
-            if (targetHit) {
+            const resp = await fetch(`/tap?t=${currentTrial}&r=${currentResponse}&x=${x}&y=${y}&h=${targetHit}&at=${now - ABSOLUTE_START_TIME}&rt=${relativeResponseTime}&tt=${absoluteTrialTime}&sh=${stimulusType}&sz=${size}&p=${currentPosition}&f=${Shapes.Shape.brightness}&c=${color}&b=${backgroundBrightness}&v=${v}`);
+            if (targetHit  && !hidden) {
                 hidden = true;
                 shape.clear();
-                await fetch(`${ROUTER_URL}/b`);
+                try {
+                    await fetchWithTimeout(`${ROUTER_URL}/b`, {
+                        timeout: 500
+                    });
+                }
+                catch (e) {
+                    if(e.name === "AbortError"){
+                        console.log(`Failed to fetch: ${ROUTER_URL}/b`)
+                    }
+                }
             }
             else {
-                await fetch(`${ROUTER_URL}/a`);
+                try {
+                    await fetchWithTimeout(`${ROUTER_URL}/a`, {
+                        timeout: 500
+                    });
+                }
+                catch (e) {
+                    if(e.name === "AbortError"){
+                        console.log(`Failed to fetch: ${ROUTER_URL}/a`)
+                    }
+                }
             }
             statusSpan.innerHTML = resp.statusText;
         }
@@ -142,6 +177,7 @@ const Rat = (function () {
                     hidden = false;
                     relativeStartTime = Date.now();
                     currentTrial++;
+                    currentResponse = 0;
                     break;
                 case "hide":
                     statusSpan.innerHTML = "Hide stimulus";
@@ -162,6 +198,7 @@ const Rat = (function () {
                     break;
                 case "startAnimation":
                     statusSpan.innerHTML = "Start animation";
+                    currentPosition = "Animation";
                     stopAnimation = false;
                     window.requestAnimationFrame(animationLoop);
                     break;
@@ -207,6 +244,7 @@ const Rat = (function () {
                     break;
                 case "left":
                     statusSpan.innerHTML = "Left";
+                    currentPosition = "Left";
                     shape.clear();
                     [Shapes.Circle, Shapes.Star].forEach(elem => elem.setPosition({ x: LEFT_X, y: POSITION_Y }));
                     animationPosition.x = LEFT_X;
@@ -218,6 +256,7 @@ const Rat = (function () {
                 case "right":
                     shape.clear();
                     statusSpan.innerHTML = "Right";
+                    currentPosition = "Right";
                     direction = -1 * ANIMATION_STEP;
                     [Shapes.Circle, Shapes.Star].forEach(elem => elem.setPosition({ x: RIGHT_X, y: POSITION_Y }));
                     animationPosition.x = RIGHT_X;
@@ -228,6 +267,7 @@ const Rat = (function () {
                 case "center":
                     shape.clear();
                     statusSpan.innerHTML = "Centre";
+                    currentPosition = "Centre";
                     [Shapes.Circle, Shapes.Star].forEach(elem => elem.setPosition({ x: CENTER_X, y: POSITION_Y }));
                     animationPosition.x = CENTER_X;
                     if (!hidden) {
@@ -272,7 +312,7 @@ const Rat = (function () {
             experimentClock = setInterval(async function () {
                 const now = Date.now();
                 if (open) {
-                    fetch(`/time?at=${now - ABSOLUTE_START_TIME}&rt=${relativeResponseTime}`)
+                    fetch(`/time?at=${now - ABSOLUTE_START_TIME}&rt=${currentTrial > 0 ? now - relativeStartTime : 0}`)
                         .catch(e => {
                             window.clearInterval(experimentClock);
                             experimentClock = null;

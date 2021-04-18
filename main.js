@@ -6,7 +6,7 @@ const express = require("express");
 const path = require("path");
 const fs = require("fs");
 
-const CSV_HEADER = `"Trial","Absolute Trial Time","Absolute RespnseTime","Relative Response Time","X","Y","Success","Visable","Shape","Colour","Size","Background Brightness","Foreground Brightness"\n`;
+const CSV_HEADER = `"Trial","Reponse","Absolute Trial Time","Absolute RespnseTime","Relative Response Time","X","Y","Success","Visable","Shape","Colour","Size","Position","Background Brightness","Foreground Brightness"\n`;
 const PORT = 80;
 let host;
 let fName;
@@ -143,9 +143,10 @@ expressApp.get("/events", async function (req, res) {
 });
 
 expressApp.get("/tap", function (req, res) {
-    res.send("Tap OK");
+    res.send("OK");
     mainWindow.webContents.send("tap", {
         trial: req.query.t,
+        response: req.query.r,
         x: req.query.x,
         y: req.query.y,
         absoluteTime: req.query.at,
@@ -159,11 +160,11 @@ expressApp.get("/tap", function (req, res) {
         size: req.query.sz,
         visible: req.query.v
     });
-    writeCSV(`"${req.query.t}","${req.query.tt}","${req.query.at}","${req.query.rt}","${req.query.x}","${req.query.y}","${req.query.h}","${req.query.v}","${req.query.sh}","${req.query.c}","${req.query.sz}","${req.query.b}","${req.query.f}"\n`);
+    writeCSV(`"${req.query.t}","${req.query.r}","${req.query.tt}","${req.query.at}","${req.query.rt}","${req.query.x}","${req.query.y}","${req.query.h}","${req.query.v}","${req.query.sh}","${req.query.c}","${req.query.sz}","${req.query.p}","${req.query.b}","${req.query.f}"\n`);
 });
 
 expressApp.get("/time", function (req, res) {
-    res.send("Time OK");
+    res.send("OK");
     mainWindow.webContents.send("time", {
         absoluteTime: req.query.at,
         relativeTime: req.query.rt
@@ -251,7 +252,7 @@ ipcMain.handle("fName", async () => {
             extensions: ["csv"]
         }]
     });
-    return fName ? path.basename(fName) : "Not saving";
+    return fName ? path.basename(fName) : "<span class='warning'>Not saving</span>";
 });
 
 bindServer();

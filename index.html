@@ -37,7 +37,7 @@
                     Output File
                 </legend>
                 <button type="button" class="ordinary-btn" id="file-btn">Select File</button>
-                Writing results to: <span id="file-span">Not saving</span>
+                Writing results to: <span id="file-span"> <span class="warning">Not saving</span></span>
             </fieldset>
         </div>
         <div class="grid-4-container">
@@ -69,10 +69,13 @@
                 <button type="button" class="radio-btn animation-btn">Start</button>
                 <button type="button" class="radio-btn animation-btn default-btn">Stop</button>
             </fieldset>
-            <fieldset style="padding-top: 15px;">
-                <!--  <legend>Automatic Controls</legend>
-                <input type="checkbox" id="autoReward" name="autoReward" checked>
-                <label for="autoReward" style="font-family: Arial, Helvetica, sans-serif;"> Auto Reward</label> -->
+            <fieldset style="padding-top: 15px;" class="feedback-label">
+                <legend>Automatic Controls</legend>
+                <label for="isi-ip">Inter stimulus interval:</label>
+                <input type="number" id="isi-ip" name="isi-ip" min="1" max="100" value="30">
+                &nbsp;
+                <label for="auto-cb">Auto:</label>
+                <input type="checkbox" id="auto-cb" name="auto-cb">
             </fieldset>
             <fieldset>
                 <legend>Manual Controls</legend>
@@ -118,6 +121,7 @@
         <table>
             <tr>
                 <th>Trial</th>
+                <th>Response</th>
                 <th>Absolute<br>Trial Time</th>
                 <th>Absolute<br>Response Time</th>
                 <th>Relative<br>Response Time</th>
@@ -128,11 +132,10 @@
                 <th>Shape</th>
                 <th>Colour</th>
                 <th>Size</th>
-                <th>Background<br>Brightness</th>
-                <th>Foreground<br>Brightness</th>
             </tr>
             <tr>
                 <td id="trial-td">&#8212;</td>
+                <td id="response-td">&#8212;</td>
                 <td id="trial-time-td">&#8212;</td>
                 <td id="absolute-time-td">&#8212;</td>
                 <td id="relative-time-td">&#8212;</td>
@@ -143,8 +146,6 @@
                 <td id="shape-td">&#8212;</td>
                 <td id="color-td">&#8212;</td>
                 <td id="size-td">&#8212;</td>
-                <td id="background-td">&#8212;</td>
-                <td id="foreground-td">&#8212;</td>
             </tr>
         </table>
     </div>

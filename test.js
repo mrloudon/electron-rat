@@ -1,11 +1,22 @@
-function test(o) {
-    const { t = 8000 } = o;
-    const a = {...o};
-    console.log("t = ", t);
-    console.log("a = ", a);
-    console.log("o = ", o);
+
+
+function fet(options) {
+    const { timeout = 1000 } = options;
+
+
+    const temp = {
+        ...options,
+        name: "Hello"
+    };
+
+    console.log(timeout);
+    return temp;
 }
 
-test({
-    j: "Hello"
+
+const result = fet({
+    timeout: 50,
+    pet: "Cat"
 });
+
+console.log(result);

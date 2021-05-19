@@ -7,7 +7,7 @@ const path = require("path");
 const fs = require("fs");
 
 const CSV_HEADER = `"Trial","Reponse","Absolute Trial Time","Absolute RespnseTime","Relative Response Time","X","Y","Success","Visable","Shape","Colour","Size","Position","Background Brightness","Foreground Brightness"\n`;
-const PORT = 80;
+const PORT = 8080;
 let host;
 let fName;
 let clients = [];

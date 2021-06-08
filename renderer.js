@@ -52,6 +52,23 @@ const backgroundRange = document.getElementById("backgroundRange");
 const backgroundRangeLabel = document.getElementById("backgroundRangeLabel");
 const isiInput = document.getElementById("isi-ip");
 const autoCB = document.getElementById("auto-cb");
+const visibilityAlert = document.querySelector(".visibility-alert");
+
+function showVisible() {
+    console.log("Show visible");
+    visibilityBtns[0].style.backgroundColor = INACTIVE_BTN;
+    visibilityBtns[1].style.backgroundColor = ACTIVE_BTN;
+    visibilityAlert.innerHTML = "<h4>Stimulus Visible</h4>";
+    visibilityAlert.style.backgroundColor = "#F6F9ED";
+}
+
+function showHidden() {
+    console.log("Show hiodden");
+    visibilityBtns[0].style.backgroundColor = ACTIVE_BTN;
+    visibilityBtns[1].style.backgroundColor = INACTIVE_BTN;
+    visibilityAlert.innerHTML = "<h4>Stimulus Hidden</h4>";
+    visibilityAlert.style.backgroundColor = "#FADBD8";
+}
 
 ipc.on("time", (event, data) => {
 
@@ -77,9 +94,9 @@ ipc.on("time", (event, data) => {
     const at = Number(data.absoluteTime);
     const rt = Number(data.relativeTime);
 
-    absoluteSSpan.innerHTML = Math.round(Number(at / 1000));
+    absoluteSSpan.innerHTML = Math.floor(Number(at / 1000));
     absoluteHmsSpan.innerHTML = msToTime(at);
-    relativeSSpan.innerHTML = Math.round(Number(rt / 1000));
+    relativeSSpan.innerHTML = Math.floor(Number(rt / 1000));
     relativeHmsSpan.innerHTML = msToTime(rt);
 });
 
@@ -98,15 +115,13 @@ ipc.on("tap", (event, data) => {
     colorTD.innerHTML = data.color;
     visibleTD.innerHTML = data.visible;
     if (data.success === "true" && data.visible === "visible") {
-        visibilityBtns[0].style.backgroundColor = INACTIVE_BTN;
-        visibilityBtns[1].style.backgroundColor = ACTIVE_BTN;
+        showHidden(); // Successful tap hides the stimulus
         console.log("Correct tap");
         if (autoCB.checked) {
             console.log("Starting ISI timer");
             setTimeout(() => {
                 ipc.send("show");
-                visibilityBtns[0].style.backgroundColor = ACTIVE_BTN;
-                visibilityBtns[1].style.backgroundColor = INACTIVE_BTN;
+                showVisible();
             }, Number(isiInput.value) * 1000);
         }
     }
@@ -160,9 +175,11 @@ function visibilityBtnClick(event) {
     switch (event.currentTarget.innerText) {
         case "Show Stimulus":
             ipc.send("show");
+            showVisible();
             break;
         case "Hide Stimulus":
             ipc.send("hide");
+            showHidden();
             break;
     }
 }
@@ -268,6 +285,7 @@ function resetUI() {
         btn.style.backgroundColor = INACTIVE_BTN;
     }
     defaultBtns.forEach(btn => btn.style.backgroundColor = ACTIVE_BTN);
+    showHidden();
 }
 
 function initialise() {
@@ -277,10 +295,7 @@ function initialise() {
         console.log(data);
         clientsSpan.innerHTML = data.nClients;
         serverStatusSpan.innerHTML = data.message;
-        if (data.status === "disconnect") {
-            console.log("Reset");
-            resetUI();
-        }
+        resetUI();
     });
     ipc.invoke("host")
         .then(result => hostSpan.innerHTML = result);

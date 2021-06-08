@@ -175,3 +175,23 @@ input[type=number]{
     background-color: #eee;
     border: solid 1px #ccc;
 }
+
+.visibility-alert {
+    text-align: center;
+    border: solid 1px #ccc;
+    border-radius: 5px;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: auto auto auto auto auto auto auto auto auto;
+}
+
+.col-8 {
+    grid-column-start: 1;
+    grid-column-end: 9;
+}
+
+.col-2 {
+    grid-column-start: 9;
+}

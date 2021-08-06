@@ -5,9 +5,12 @@ const { networkInterfaces } = require("os");
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
+const dgram = require("dgram");
+const UDPServer = dgram.createSocket("udp4");
 
 const CSV_HEADER = `"Trial","Reponse","Absolute Trial Time","Absolute RespnseTime","Relative Response Time","X","Y","Success","Visable","Shape","Colour","Size","Position","Background Brightness","Foreground Brightness"\n`;
 const PORT = 8080;
+const UDP_PORT = 1234;
 let host;
 let fName;
 let clients = [];
@@ -171,10 +174,14 @@ expressApp.get("/time", function (req, res) {
     });
 });
 
-function bindServer() {
+function bindServers() {
     host = getHostIP();
     expressApp.listen(PORT, host, function () {
         console.log("Rat trainer app listening at http://%s:%s", host, PORT);
+    });
+    UDPServer.bind({
+        address: host,
+        port: UDP_PORT
     });
 }
 
@@ -255,4 +262,18 @@ ipcMain.handle("fName", async () => {
     return fName ? path.basename(fName) : "<span class='warning'>Not saving</span>";
 });
 
-bindServer();
+UDPServer.on("error", (err) => {
+    console.log(`server error:\n${err.stack}`);
+    UDPServer.close();
+});
+
+UDPServer.on("message", (msg, rinfo) => {
+    console.log(`UDP server got: ${msg} from ${rinfo.address}:${rinfo.port}`);
+});
+
+UDPServer.on("listening", () => {
+    const address = UDPServer.address();
+    console.log(`UDP server listening ${address.address}:${address.port}`);
+});
+
+bindServers();

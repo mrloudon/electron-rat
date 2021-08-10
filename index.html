@@ -12,10 +12,23 @@
 
 <body>
     <div class="row">
-        <div class="col-8">
+        <div class="col-title">
             <h4>Rat Trainer [Pilot Study]</h4>
         </div>
-        <div class="col-2 visibility-alert">
+        <div class="col-rbs">
+            <input type="radio" name="mode-radios" value="1" id="mode-radio-1">
+            <label for="mode-radio-1">Phase 1</label>
+            <input type="radio" name="mode-radios" value="2" id="mode-radio-2">
+            <label for="mode-radio-2">Phase 2</label>
+            <input type="radio" name="mode-radios" value="3" id="mode-radio-3" checked>
+            <label for="mode-radio-3">Phase 3</label>
+            <input type="checkbox" id="debug-checkbox">
+            <label for="debug-checkbox">Debug</label>
+        </div>
+        <div class="col-feedback">
+            &nbsp;
+        </div>
+        <div class="col-alert visibility-alert">
             <h4>Stimulus Hidden</h4>
         </div>
     </div>
@@ -108,9 +121,12 @@
 
         <fieldset>
             <legend>Web Server</legend>
-            <div class="grid-4-container">
+            <div class="grid-5-container">
                 <div style="padding-top: 10px;">
-                    <span class="feedback-label">Server IP:</span> <span id="host-span" class="feedback">&mdash;</span><span class="feedback">:8080</span>
+                    <span class="feedback-label">Web Server:</span> <span class="host-span feedback">&mdash;</span><span class="feedback">:8080</span>
+                </div>
+                <div style="padding-top: 10px;">
+                    <span class="feedback-label">UDP Server:</span> <span class="host-span feedback"></span><span class="feedback">:8081</span>
                 </div>
                 <div style="padding-top: 10px;">
                     <span class="feedback-label">N Clients:</span> <span id="clients-span"

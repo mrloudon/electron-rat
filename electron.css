@@ -147,6 +147,14 @@ fieldset {
     column-gap: 5px;
 }
 
+.grid-5-container {
+    font-size: small;
+    display: grid;
+    grid-template-columns: auto auto auto auto auto;
+    row-gap: 10px;
+    column-gap: 5px;
+}
+
 .slider {
     width: 95%;
 }
@@ -187,11 +195,31 @@ input[type=number]{
     grid-template-columns: auto auto auto auto auto auto auto auto auto;
 }
 
-.col-8 {
+.col-title {
     grid-column-start: 1;
-    grid-column-end: 9;
+    grid-column-end: 2;
 }
 
-.col-2 {
+.col-rbs {
+    grid-column-start: 2;
+    grid-column-end: 4;
+    padding-top: 15px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.col-feedback {
+    padding-top: 5px;
+    margin-right: 5px;
+    grid-column-start: 4;
+    grid-column-end: 9;
+    text-align: center;
+    border: solid 1px #ccc;
+    border-radius: 5px;
+    font-size: large;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: rgb(230,230,230);
+}
+
+.col-alert {
     grid-column-start: 9;
 }

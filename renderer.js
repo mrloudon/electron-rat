@@ -15,6 +15,11 @@ const INITIAL_STIMULUS = 127;
 const ACTIVE_BTN = "#FCF6CF";
 const INACTIVE_BTN = "rgb(239,239,239)";
 const ROUTER_URL = "http://192.168.4.1";
+const PHASE_1_REWARD_TIME = 60000;
+const PHASE_1_N_TRIALS = 30;
+const PHASE_2_REWARD_TIME = 60000;
+const PHASE_2_INITIAL_TIME = 15000;
+const PHASE_2_N_TRIALS = 30;
 
 
 const trialTD = document.getElementById("trial-td");
@@ -29,7 +34,7 @@ const shapeTD = document.getElementById("shape-td");
 const sizeTD = document.getElementById("size-td");
 const colorTD = document.getElementById("color-td");
 const visibleTD = document.getElementById("visible-td");
-const hostSpan = document.getElementById("host-span");
+const hostSpans = document.querySelectorAll(".host-span");
 const clientsSpan = document.getElementById("clients-span");
 const serverStatusSpan = document.getElementById("server-status-span");
 const absoluteHmsSpan = document.getElementById("absolute-hms-span");
@@ -53,6 +58,14 @@ const backgroundRangeLabel = document.getElementById("backgroundRangeLabel");
 const isiInput = document.getElementById("isi-ip");
 const autoCB = document.getElementById("auto-cb");
 const visibilityAlert = document.querySelector(".visibility-alert");
+const feedbackAlert = document.querySelector(".col-feedback");
+const modeRBs = document.querySelectorAll("input[name='mode-radios']");
+const debugCB = document.getElementById("debug-checkbox");
+
+let mode = "mode-3";
+let currentTrial = 0;
+let waitingForBreak = false;
+let generalTimer;
 
 function showVisible() {
     console.log("Show visible");
@@ -63,7 +76,7 @@ function showVisible() {
 }
 
 function showHidden() {
-    console.log("Show hiodden");
+    console.log("Show hidden");
     visibilityBtns[0].style.backgroundColor = ACTIVE_BTN;
     visibilityBtns[1].style.backgroundColor = INACTIVE_BTN;
     visibilityAlert.innerHTML = "<h4>Stimulus Hidden</h4>";
@@ -100,7 +113,7 @@ ipc.on("time", (event, data) => {
     relativeHmsSpan.innerHTML = msToTime(rt);
 });
 
-ipc.on("tap", (event, data) => {
+ipc.on("tap", async (event, data) => {
     console.log(data);
     trialTD.innerHTML = data.trial;
     responseTD.innerHTML = data.response;
@@ -117,14 +130,70 @@ ipc.on("tap", (event, data) => {
     if (data.success === "true" && data.visible === "visible") {
         showHidden(); // Successful tap hides the stimulus
         console.log("Correct tap");
-        if (autoCB.checked) {
-            console.log("Starting ISI timer");
-            setTimeout(() => {
-                ipc.send("show");
-                showVisible();
-            }, Number(isiInput.value) * 1000);
+        switch (mode) {
+            case "mode-2":
+                await fetch(`${ROUTER_URL}/b`);
+                waitingForBreak = true;
+                break;
+            case "mode-3":
+                if (autoCB.checked) {
+                    console.log("Starting ISI timer");
+                    setTimeout(() => {
+                        ipc.send("show");
+                        showVisible();
+                    }, Number(isiInput.value) * 1000);
+                }
+                break;
         }
     }
+});
+
+ipc.on("udp", (event, data) => {
+
+    function handleMode1() {
+        const rewardTime = debugCB.checked ? 1000 : PHASE_1_REWARD_TIME;
+        const nTrials = debugCB.checked ? 5 : PHASE_1_N_TRIALS;
+        currentTrial++;
+        console.log(data);
+        feedbackAlert.innerHTML = `Trial: ${currentTrial}<br>RT: ${data}`;
+        ipc.send("write", `${currentTrial},${data}\n`);
+        if (currentTrial === nTrials) {
+            rewardBtn.disabled = false;
+        }
+        else {
+            generalTimer = setTimeout(async () => {
+                await fetch(`${ROUTER_URL}/b`);
+                console.log("AUTO Reward");
+                waitingForBreak = true;
+            }, rewardTime);
+        }
+    }
+
+    function handleMode2() {
+        const nTrials = debugCB.checked ? 5 : PHASE_2_N_TRIALS;
+        currentTrial++;
+        if (currentTrial === nTrials) {
+            rewardBtn.disabled = false;
+        }
+        else {
+            generalTimer = setTimeout(doMode2Trial, debugCB.checked ? 1000 : PHASE_2_REWARD_TIME);
+        }
+    }
+
+    if (!waitingForBreak) {
+        return;
+    }
+
+    waitingForBreak = false;
+    switch (mode) {
+        case "mode-1":
+            handleMode1();
+            break;
+        case "mode-2":
+            handleMode2();
+            break;
+    }
+
 });
 
 function shapeBtnClick(event) {
@@ -219,13 +288,6 @@ function positionBtnClick(event) {
     }
 }
 
-async function rewardBtnClick(event) {
-    const target = event.currentTarget;
-    target.disabled = true;
-    await fetch(`${ROUTER_URL}/b`);
-    setTimeout(() => target.disabled = false, 2000);
-}
-
 function disconnectBtnClick(event) {
     ipc.send("disconnect");
     const target = event.currentTarget;
@@ -275,6 +337,80 @@ function attachListeners() {
     };
 }
 
+async function rewardBtnClick(event) {
+    const target = event.currentTarget;
+    switch (mode) {
+        case "mode-1":
+            rewardBtn.disabled = true;
+            currentTrial = 0;
+            await fetch(`${ROUTER_URL}/b`);
+            waitingForBreak = true;
+            break;
+        case "mode-2":
+            rewardBtn.disabled = true;
+            currentTrial = 0;
+            waitingForBreak = false;
+            ipc.send("show");
+            showVisible();
+            generalTimer = setTimeout(async function firstTrial() {
+                ipc.send("hide");
+                showHidden();
+                await fetch(`${ROUTER_URL}/b`);
+                waitingForBreak = true;
+            }, debugCB.checked ? 1000 : PHASE_2_INITIAL_TIME);
+            break;
+        case "mode-3":
+            target.disabled = true;
+            await fetch(`${ROUTER_URL}/b`);
+            setTimeout(() => target.disabled = false, 2000);
+            break;
+    }
+}
+
+function doMode2Trial() {
+    ipc.send("show");
+    showVisible();
+}
+
+function modeClick(evt) {
+    clearTimeout(generalTimer);
+    waitingForBreak = false;
+    switch (evt.currentTarget.value) {
+        case "1": mode1();
+            break;
+        case "2": mode2();
+            break;
+        case "3": mode3();
+            break;
+    }
+}
+
+function mode12DisableButtons() {
+    document.getElementById("main-page").querySelectorAll("button").forEach(item => item.disabled = true);
+    stimulusRange.disabled = true;
+    backgroundRange.disabled = true;
+    rewardBtn.disabled = false;
+    fileBtn.disabled = false;
+}
+
+function mode1() {
+    mode = "mode-1";
+    mode12DisableButtons();
+}
+
+function mode2() {
+    mode = "mode-2";
+    mode12DisableButtons();
+}
+
+
+function mode3() {
+    mode = "mode-3";
+    document.getElementById("main-page").querySelectorAll("button").forEach(item => item.disabled = false);
+    stimulusRange.disabled = false;
+    backgroundRange.disabled = false;
+}
+
 function resetUI() {
     const defaultBtns = document.querySelectorAll(".default-btn");
     backgroundRange.value = INITIAL_BACKGROUND;
@@ -298,7 +434,10 @@ function initialise() {
         resetUI();
     });
     ipc.invoke("host")
-        .then(result => hostSpan.innerHTML = result);
+        .then(result => {
+            hostSpans.forEach(item => item.innerHTML = result);
+        });
+    modeRBs.forEach(item => item.addEventListener("click", modeClick));
 
     /*  clockTimer = setInterval(() => {
          let diff = Date.now() - startTime;

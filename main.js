@@ -10,7 +10,8 @@ const UDPServer = dgram.createSocket("udp4");
 
 const CSV_HEADER = `"Trial","Reponse","Absolute Trial Time","Absolute RespnseTime","Relative Response Time","X","Y","Success","Visable","Shape","Colour","Size","Position","Background Brightness","Foreground Brightness"\n`;
 const PORT = 8080;
-const UDP_PORT = 1234;
+const UDP_PORT = 8081;
+
 let host;
 let fName;
 let clients = [];
@@ -36,6 +37,18 @@ function getHostIP() {
     return "127.0.0.1";
 }
 
+function writeString(str){
+    if (!fName) {
+        return;
+    }
+    try {
+        fs.appendFile(fName, str, function (err) {
+            if (err) throw err;
+        });
+    } catch (err) {
+        console.error(err)
+    }   
+}
 
 function writeCSV(csv) {
     if (!fName) {
@@ -47,7 +60,6 @@ function writeCSV(csv) {
         }
         fs.appendFile(fName, csv, function (err) {
             if (err) throw err;
-            console.log('Saved!');
         });
     } catch (err) {
         console.error(err)
@@ -179,6 +191,7 @@ function bindServers() {
     expressApp.listen(PORT, host, function () {
         console.log("Rat trainer app listening at http://%s:%s", host, PORT);
     });
+
     UDPServer.bind({
         address: host,
         port: UDP_PORT
@@ -261,14 +274,19 @@ ipcMain.handle("fName", async () => {
     });
     return fName ? path.basename(fName) : "<span class='warning'>Not saving</span>";
 });
+ipcMain.on("write", (event, value) => {
+    value && writeString(value);
+});
 
 UDPServer.on("error", (err) => {
     console.log(`server error:\n${err.stack}`);
     UDPServer.close();
 });
 
-UDPServer.on("message", (msg, rinfo) => {
-    console.log(`UDP server got: ${msg} from ${rinfo.address}:${rinfo.port}`);
+UDPServer.on("message", (msg) => {
+    //console.log(`UDP server got: ${msg} from ${rinfo.address}:${rinfo.port}`);
+    //console.log(msg.toString("utf8"));
+    mainWindow.webContents.send("udp", msg.toString("utf8"));
 });
 
 UDPServer.on("listening", () => {

@@ -20,6 +20,11 @@ const PHASE_1_N_TRIALS = 30;
 const PHASE_2_REWARD_TIME = 60000;
 const PHASE_2_INITIAL_TIME = 15000;
 const PHASE_2_N_TRIALS = 30;
+const DEBUG_N_TRIALS = 5;
+const DEBUG_REWARD_TIME = 1000;
+const DEBUG_PHASE_2_INITIAL_TIME = 3000;
+const PHASE_1_CSV_HEADER = "Trial, Response Time\n";
+//const PHASE_3_CSV_HEADER = `"Trial","Reponse","Absolute Trial Time","Absolute RespnseTime","Relative Response Time","X","Y","Success","Visable","Shape","Colour","Size","Position","Background Brightness","Foreground Brightness"\n`;
 
 
 const trialTD = document.getElementById("trial-td");
@@ -115,7 +120,12 @@ ipc.on("time", (event, data) => {
 
 ipc.on("tap", async (event, data) => {
     console.log(data);
-    trialTD.innerHTML = data.trial;
+    if (mode === "mode-3") {
+        trialTD.innerHTML = data.trial;
+    }
+    else {
+        trialTD.innerHTML = currentTrial;
+    }
     responseTD.innerHTML = data.response;
     trialTimeTD.innerHTML = data.trialTime;
     relativeTimeTD.innerHTML = data.relativeTime;
@@ -128,14 +138,19 @@ ipc.on("tap", async (event, data) => {
     colorTD.innerHTML = data.color;
     visibleTD.innerHTML = data.visible;
     if (data.success === "true" && data.visible === "visible") {
-        showHidden(); // Successful tap hides the stimulus
-        console.log("Correct tap");
         switch (mode) {
             case "mode-2":
+                clearTimeout(generalTimer);
+                ipc.send("hide");
+                showHidden();
                 await fetch(`${ROUTER_URL}/b`);
                 waitingForBreak = true;
+                feedbackAlert.innerHTML = "Phase 2<br>Tap!";
                 break;
             case "mode-3":
+                ipc.send("hide");
+                showHidden();
+                await fetch(`${ROUTER_URL}/b`);
                 if (autoCB.checked) {
                     console.log("Starting ISI timer");
                     setTimeout(() => {
@@ -145,6 +160,8 @@ ipc.on("tap", async (event, data) => {
                 }
                 break;
         }
+        showHidden(); // Successful tap hides the stimulus
+        console.log("Correct tap");
     }
 });
 
@@ -156,9 +173,15 @@ ipc.on("udp", (event, data) => {
         currentTrial++;
         console.log(data);
         feedbackAlert.innerHTML = `Trial: ${currentTrial}<br>RT: ${data}`;
-        ipc.send("write", `${currentTrial},${data}\n`);
+        if (currentTrial === 1) {
+            ipc.send("write", PHASE_1_CSV_HEADER + `${currentTrial},${data}\n`);
+        }
+        else {
+            ipc.send("write", `${currentTrial},${data}\n`);
+        }
         if (currentTrial === nTrials) {
             rewardBtn.disabled = false;
+            feedbackAlert.innerHTML = "Phase 1<br> completed";
         }
         else {
             generalTimer = setTimeout(async () => {
@@ -170,13 +193,15 @@ ipc.on("udp", (event, data) => {
     }
 
     function handleMode2() {
-        const nTrials = debugCB.checked ? 5 : PHASE_2_N_TRIALS;
+        const nTrials = debugCB.checked ? DEBUG_N_TRIALS : PHASE_2_N_TRIALS;
         currentTrial++;
-        if (currentTrial === nTrials) {
+        if (currentTrial > nTrials) {
             rewardBtn.disabled = false;
+            feedbackAlert.innerHTML = "Phase 2<br> completed";
         }
         else {
-            generalTimer = setTimeout(doMode2Trial, debugCB.checked ? 1000 : PHASE_2_REWARD_TIME);
+            generalTimer = setTimeout(beginPhase2Trial, debugCB.checked ? DEBUG_REWARD_TIME : PHASE_2_REWARD_TIME);
+            feedbackAlert.innerHTML = `Trial ${currentTrial}<br>RT: ${data}`;
         }
     }
 
@@ -234,7 +259,6 @@ function sizeBtnClick(event) {
             break;
     }
 }
-
 
 function visibilityBtnClick(event) {
     for (const btn of visibilityBtns) {
@@ -337,6 +361,31 @@ function attachListeners() {
     };
 }
 
+function beginPhase2Trial() {
+    ipc.send("show");
+    showVisible();
+    /** The first trial has an automatic reward subsequent trials require a successful tap */
+    feedbackAlert.innerHTML = `Trial ${currentTrial}`;
+    generalTimer = setTimeout(async function hideStimulusAndReward() {
+        ipc.send("hide");
+        showHidden();
+        await fetch(`${ROUTER_URL}/b`);
+        waitingForBreak = true;
+        feedbackAlert.innerHTML = `Trial ${currentTrial}<br>Time Out`;
+        responseTD.innerHTML = "&mdash;";
+        trialTimeTD.innerHTML = "&mdash;";
+        relativeTimeTD.innerHTML = "&mdash;";
+        absoluteTimeTD.innerHTML = "&mdash;";
+        xTD.innerHTML = "&mdash;";
+        yTD.innerHTML = "&mdash;";
+        successTD.innerHTML = "&mdash;";
+        shapeTD.innerHTML = "&mdash;";
+        sizeTD.innerHTML = "&mdash;";
+        colorTD.innerHTML = "&mdash;";
+        visibleTD.innerHTML = "&mdash;";
+    }, debugCB.checked ? DEBUG_PHASE_2_INITIAL_TIME : PHASE_2_INITIAL_TIME);
+}
+
 async function rewardBtnClick(event) {
     const target = event.currentTarget;
     switch (mode) {
@@ -348,16 +397,9 @@ async function rewardBtnClick(event) {
             break;
         case "mode-2":
             rewardBtn.disabled = true;
-            currentTrial = 0;
+            currentTrial = 1;
             waitingForBreak = false;
-            ipc.send("show");
-            showVisible();
-            generalTimer = setTimeout(async function firstTrial() {
-                ipc.send("hide");
-                showHidden();
-                await fetch(`${ROUTER_URL}/b`);
-                waitingForBreak = true;
-            }, debugCB.checked ? 1000 : PHASE_2_INITIAL_TIME);
+            beginPhase2Trial();
             break;
         case "mode-3":
             target.disabled = true;
@@ -365,11 +407,6 @@ async function rewardBtnClick(event) {
             setTimeout(() => target.disabled = false, 2000);
             break;
     }
-}
-
-function doMode2Trial() {
-    ipc.send("show");
-    showVisible();
 }
 
 function modeClick(evt) {
@@ -395,17 +432,20 @@ function mode12DisableButtons() {
 
 function mode1() {
     mode = "mode-1";
+    rewardBtn.innerHTML = "Start";
     mode12DisableButtons();
 }
 
 function mode2() {
     mode = "mode-2";
+    rewardBtn.innerHTML = "Start";
     mode12DisableButtons();
 }
 
 
 function mode3() {
     mode = "mode-3";
+    rewardBtn.innerHTML = "Reward";
     document.getElementById("main-page").querySelectorAll("button").forEach(item => item.disabled = false);
     stimulusRange.disabled = false;
     backgroundRange.disabled = false;

@@ -8,7 +8,7 @@ const fs = require("fs");
 const dgram = require("dgram");
 const UDPServer = dgram.createSocket("udp4");
 
-const CSV_HEADER = `"Trial","Reponse","Absolute Trial Time","Absolute RespnseTime","Relative Response Time","X","Y","Success","Visable","Shape","Colour","Size","Position","Background Brightness","Foreground Brightness"\n`;
+//const CSV_HEADER = `"Trial","Reponse","Absolute Trial Time","Absolute RespnseTime","Relative Response Time","X","Y","Success","Visable","Shape","Colour","Size","Position","Background Brightness","Foreground Brightness"\n`;
 const PORT = 8080;
 const UDP_PORT = 8081;
 
@@ -50,7 +50,7 @@ function writeString(str){
     }   
 }
 
-function writeCSV(csv) {
+/* function writeCSV(csv) {
     if (!fName) {
         return;
     }
@@ -64,7 +64,7 @@ function writeCSV(csv) {
     } catch (err) {
         console.error(err)
     }
-}
+} */
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -175,7 +175,7 @@ expressApp.get("/tap", function (req, res) {
         size: req.query.sz,
         visible: req.query.v
     });
-    writeCSV(`"${req.query.t}","${req.query.r}","${req.query.tt}","${req.query.at}","${req.query.rt}","${req.query.x}","${req.query.y}","${req.query.h}","${req.query.v}","${req.query.sh}","${req.query.c}","${req.query.sz}","${req.query.p}","${req.query.b}","${req.query.f}"\n`);
+//    writeCSV(`"${req.query.t}","${req.query.r}","${req.query.tt}","${req.query.at}","${req.query.rt}","${req.query.x}","${req.query.y}","${req.query.h}","${req.query.v}","${req.query.sh}","${req.query.c}","${req.query.sz}","${req.query.p}","${req.query.b}","${req.query.f}"\n`);
 });
 
 expressApp.get("/time", function (req, res) {

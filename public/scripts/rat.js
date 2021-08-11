@@ -20,14 +20,14 @@ const Rat = (function () {
     const INITIAL_STIMULUS_BRIGHTNESS = 127;
     const INITIAL_BACKGROUND_BRIGHTNESS = 127;
 
-    const ROUTER_URL = "http://192.168.4.1";
+    //const ROUTER_URL = "http://192.168.4.1";
     const ABSOLUTE_START_TIME = Date.now();
 
 
     let experimentClock;
     let open;
 
-    async function fetchWithTimeout(resource, options) {
+    /* async function fetchWithTimeout(resource, options) {
         const { timeout = 1000 } = options;
 
         const controller = new AbortController();
@@ -40,7 +40,7 @@ const Rat = (function () {
         clearTimeout(id);
 
         return response;
-    }
+    } */
 
     function run() {
         const source = new EventSource("/events");
@@ -79,7 +79,7 @@ const Rat = (function () {
             const relativeResponseTime = currentTrial > 0 ? now - relativeStartTime : 0;
             const absoluteTrialTime = currentTrial > 0 ? relativeStartTime - ABSOLUTE_START_TIME : 0;
             const resp = await fetch(`/tap?t=${currentTrial}&r=${currentResponse}&x=${x}&y=${y}&h=${targetHit}&at=${now - ABSOLUTE_START_TIME}&rt=${relativeResponseTime}&tt=${absoluteTrialTime}&sh=${stimulusType}&sz=${size}&p=${currentPosition}&f=${Shapes.Shape.brightness}&c=${color}&b=${backgroundBrightness}&v=${v}`);
-            if (targetHit  && !hidden) {
+            /* if (targetHit  && !hidden) {
                 hidden = true;
                 shape.clear();
                 try {
@@ -104,7 +104,7 @@ const Rat = (function () {
                         console.log(`Failed to fetch: ${ROUTER_URL}/a`)
                     }
                 }
-            }
+            } */
             statusSpan.innerHTML = resp.statusText;
         }
 

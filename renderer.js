@@ -23,7 +23,7 @@ const PHASE_2_N_TRIALS = 30;
 const DEBUG_N_TRIALS = 5;
 const DEBUG_REWARD_TIME = 1000;
 const DEBUG_PHASE_2_TIMEOUT_TIME = 3000;
-const PHASE_1_CSV_HEADER = "Trial, Response Time\n";
+const PHASE_1_CSV_HEADER = "Trial, Response Time, Start Time\n";
 const PHASE_2_CSV_HEADER = "Trial,Time Out,Tap Time,IR Break Time\n";
 //const PHASE_3_CSV_HEADER = `"Trial","Reponse","Absolute Trial Time","Absolute RespnseTime","Relative Response Time","X","Y","Success","Visable","Shape","Colour","Size","Position","Background Brightness","Foreground Brightness"\n`;
 
@@ -71,15 +71,15 @@ const debugCB = document.getElementById("debug-checkbox");
 let mode = "mode-3";
 let currentTrial = 0;
 let waitingForBreak = false;
-let generalTimer;
+let generalTimer, experimentTimer;
 let phase2Data = {
     trial: 0,
     timeOut: 0,
-    reward: 0,
-    ir: 0
+    tapTime: 0,
+    irBreakTime: 0
 };
 
-let absoluteStartTime = 0, trialStartTime = 0;
+let experimentStartTime = 0, absoluteStartTime = 0, trialStartTime = 0;
 
 function showVisible() {
     console.log("Show visible");
@@ -97,7 +97,7 @@ function showHidden() {
     visibilityAlert.style.backgroundColor = "#FADBD8";
 }
 
-/* ipc.on("time", (event, data) => {
+function experimentTimerTimeout(){
 
     function msToTime(diff) {
         let hours = Math.floor(diff / MILLIS_HR).toString();
@@ -118,27 +118,20 @@ function showHidden() {
         return `${hours}:${mins}:${secs}`;
     }
 
-    const at = Number(data.absoluteTime);
-    const rt = Number(data.relativeTime);
+    const now = Date.now();
+    const at = now - absoluteStartTime;
+    const rt = now - trialStartTime;
 
     absoluteSSpan.innerHTML = Math.floor(Number(at / 1000));
     absoluteHmsSpan.innerHTML = msToTime(at);
     relativeSSpan.innerHTML = Math.floor(Number(rt / 1000));
     relativeHmsSpan.innerHTML = msToTime(rt);
-}); */
+}
 
 ipc.on("tap", async (event, data) => {
-    console.log(data);
-    if (mode === "mode-3") {
-        trialTD.innerHTML = data.trial;
-    }
-    else {
-        trialTD.innerHTML = currentTrial;
-    }
+    const now = Date.now();
+    trialTD.innerHTML = currentTrial;
     responseTD.innerHTML = data.response;
-//    trialTimeTD.innerHTML = data.trialTime;
-//    relativeTimeTD.innerHTML = data.relativeTime;
-//    absoluteTimeTD.innerHTML = data.absoluteTime;
     xTD.innerHTML = data.x.toString();
     yTD.innerHTML = data.y.toString();
     successTD.innerHTML = data.success;
@@ -154,9 +147,9 @@ ipc.on("tap", async (event, data) => {
                 showHidden();
                 await fetch(`${ROUTER_URL}/b`);
                 waitingForBreak = true;
-                feedbackAlert.innerHTML = `Trial ${currentTrial}<br>${data.relativeTime}`;
-                phase2Data.reward = data.relativeTime;
+                phase2Data.tapTime = now - trialStartTime;
                 phase2Data.timeOut = 0;
+                feedbackAlert.innerHTML = `Trial ${currentTrial}<br>${phase2Data.tapTime}`;
                 break;
             case "mode-3":
                 ipc.send("hide");
@@ -184,18 +177,20 @@ ipc.on("udp", (event, data) => {
         console.log(data);
         feedbackAlert.innerHTML = `Trial ${currentTrial}<br>RT: ${data}`;
         if (currentTrial === 1) {
-            ipc.send("write", PHASE_1_CSV_HEADER + `${currentTrial},${data}\n`);
+            ipc.send("write", PHASE_1_CSV_HEADER + `${currentTrial},${data},${absoluteStartTime}\n`);
         }
         else {
-            ipc.send("write", `${currentTrial},${data}\n`);
+            ipc.send("write", `${currentTrial},${data},${absoluteStartTime}\n`);
         }
         if (currentTrial === nTrials) {
             rewardBtn.disabled = false;
             feedbackAlert.innerHTML = "Phase 1<br> completed";
+            clearTimeout(experimentTimer);
         }
         else {
             generalTimer = setTimeout(async () => {
                 await fetch(`${ROUTER_URL}/b`);
+                absoluteStartTime = Date.now() - experimentStartTime;
                 waitingForBreak = true;
                 currentTrial++;
                 feedbackAlert.innerHTML = `Trial ${currentTrial}`;
@@ -205,13 +200,14 @@ ipc.on("udp", (event, data) => {
 
     function handleMode2() {
         const nTrials = debugCB.checked ? DEBUG_N_TRIALS : PHASE_2_N_TRIALS;
-        phase2Data.ir = data;
-        const csv = `${phase2Data.trial},${phase2Data.timeOut},${phase2Data.reward},${phase2Data.ir}\n`;
+        phase2Data.irBreakTime = data;
+        const csv = `${phase2Data.trial},${phase2Data.timeOut},${phase2Data.tapTime},${phase2Data.irBreakTime}\n`;
 
         currentTrial++;
         if (currentTrial > nTrials) {
             rewardBtn.disabled = false;
             feedbackAlert.innerHTML = "Phase 2<br> completed";
+            clearTimeout(experimentTimer);
         }
         else {
             generalTimer = setTimeout(beginPhase2Trial, debugCB.checked ? DEBUG_REWARD_TIME : PHASE_2_REWARD_TIME);
@@ -388,6 +384,7 @@ function beginPhase2Trial() {
     phase2Data.trial = currentTrial;
     ipc.send("show");
     showVisible();
+    trialStartTime = Date.now();
     /** The first trial has an automatic reward subsequent trials require a successful tap */
     feedbackAlert.innerHTML = `Trial ${currentTrial}`;
     generalTimer = setTimeout(async function hideStimulusAndReward() {
@@ -396,7 +393,7 @@ function beginPhase2Trial() {
         await fetch(`${ROUTER_URL}/b`);
         waitingForBreak = true;
         phase2Data.timeOut = 1;
-        phase2Data.reward = 0;
+        phase2Data.tapTime = 0;
         feedbackAlert.innerHTML = `Trial ${currentTrial}<br>Time Out`;
         responseTD.innerHTML = "&mdash;";
         trialTimeTD.innerHTML = "&mdash;";
@@ -420,13 +417,16 @@ async function rewardBtnClick(event) {
             currentTrial = 1;
             feedbackAlert.innerHTML = `Trial ${currentTrial}`;
             await fetch(`${ROUTER_URL}/b`);
-            absoluteStartTime = Date.now();
+            experimentStartTime = Date.now();
+            absoluteStartTime = 0;
             waitingForBreak = true;
             break;
         case "mode-2":
             rewardBtn.disabled = true;
             currentTrial = 1;
             waitingForBreak = false;
+            absoluteStartTime = Date.now();
+            experimentTimer = setInterval(experimentTimerTimeout, 1000);
             beginPhase2Trial();
             break;
         case "mode-3":
@@ -439,6 +439,7 @@ async function rewardBtnClick(event) {
 
 function modeClick(evt) {
     clearTimeout(generalTimer);
+    clearTimeout(experimentTimer);
     waitingForBreak = false;
     switch (evt.currentTarget.value) {
         case "1": mode1();

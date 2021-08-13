@@ -3,44 +3,30 @@
 const Rat = (function () {
     const PX_PER_MM = 600 / 93;
     const CM_1 = 10 * PX_PER_MM;
-    const CIRCLE_SMALL_R = CM_1;
-    const STAR_SMALL_R1 = 1.25 * CM_1;
-    const STAR_SMALL_R2 = 0.75 * CM_1;
+    const CIRCLE_SMALL_R = 2 * CM_1;
+    const STAR_SMALL_R1 = 2.0 * CM_1;
+    const STAR_SMALL_R2 = CM_1;
+    //const STAR_SMALL_R1 = 1.25 * CM_1;
+    //const STAR_SMALL_R2 = 0.75 * CM_1;
     /*    const SQUARE_SMALL_SIDE = 2 * CM_1;
         
          const CIRCLE_LARGE_R = 2 * CM_1;
         const SQUARE_LARGE_SIDE = 3 * CM_1;
          */
-    const LEFT_X = 150;
-    const RIGHT_X = 850;
+    const LEFT_X = 200;
+    const RIGHT_X = 800;
     const CENTER_X = 500;
     const POSITION_Y = 300;
     const ANIMATION_STEP = 4;
 
     const INITIAL_STIMULUS_BRIGHTNESS = 127;
     const INITIAL_BACKGROUND_BRIGHTNESS = 127;
-
-    //const ROUTER_URL = "http://192.168.4.1";
-    const ABSOLUTE_START_TIME = Date.now();
+    //const ABSOLUTE_START_TIME = Date.now();
 
 
-    let experimentClock;
-    let open;
+    //let experimentClock;
+    //let open;
 
-    /* async function fetchWithTimeout(resource, options) {
-        const { timeout = 1000 } = options;
-
-        const controller = new AbortController();
-        const id = setTimeout(() => controller.abort(), timeout);
-
-        const response = await fetch(resource, {
-            ...options,
-            signal: controller.signal
-        });
-        clearTimeout(id);
-
-        return response;
-    } */
 
     function run() {
         const source = new EventSource("/events");
@@ -54,7 +40,7 @@ const Rat = (function () {
         let currentPosition = "Left";
         let direction;
         let stopAnimation = true;
-        let relativeStartTime = 0;
+        //let relativeStartTime = 0;
         let currentTrial = 0;
         let currentResponse = 0;
         let stimulusType;
@@ -70,41 +56,16 @@ const Rat = (function () {
 
         async function onTap(e) {
             currentResponse++;
-            const now = Date.now();
+            //        const now = Date.now();
             const rect = e.target.getBoundingClientRect();
             const x = Math.round(e.clientX - rect.left); //x position within the element.
             const y = Math.round(e.clientY - rect.top);  //y position within the element.
             const targetHit = shape.inside({ x, y });
             const v = hidden ? "hidden" : "visible";
-            const relativeResponseTime = currentTrial > 0 ? now - relativeStartTime : 0;
-            const absoluteTrialTime = currentTrial > 0 ? relativeStartTime - ABSOLUTE_START_TIME : 0;
-            const resp = await fetch(`/tap?t=${currentTrial}&r=${currentResponse}&x=${x}&y=${y}&h=${targetHit}&at=${now - ABSOLUTE_START_TIME}&rt=${relativeResponseTime}&tt=${absoluteTrialTime}&sh=${stimulusType}&sz=${size}&p=${currentPosition}&f=${Shapes.Shape.brightness}&c=${color}&b=${backgroundBrightness}&v=${v}`);
-            /* if (targetHit  && !hidden) {
-                hidden = true;
-                shape.clear();
-                try {
-                    await fetchWithTimeout(`${ROUTER_URL}/b`, {
-                        timeout: 500
-                    });
-                }
-                catch (e) {
-                    if(e.name === "AbortError"){
-                        console.log(`Failed to fetch: ${ROUTER_URL}/b`)
-                    }
-                }
-            }
-            else {
-                try {
-                    await fetchWithTimeout(`${ROUTER_URL}/a`, {
-                        timeout: 500
-                    });
-                }
-                catch (e) {
-                    if(e.name === "AbortError"){
-                        console.log(`Failed to fetch: ${ROUTER_URL}/a`)
-                    }
-                }
-            } */
+            //        const relativeResponseTime = currentTrial > 0 ? now - relativeStartTime : 0;
+            //        const absoluteTrialTime = currentTrial > 0 ? relativeStartTime - ABSOLUTE_START_TIME : 0;
+            //        const resp = await fetch(`/tap?t=${currentTrial}&r=${currentResponse}&x=${x}&y=${y}&h=${targetHit}&at=${now - ABSOLUTE_START_TIME}&rt=${relativeResponseTime}&tt=${absoluteTrialTime}&sh=${stimulusType}&sz=${size}&p=${currentPosition}&f=${Shapes.Shape.brightness}&c=${color}&b=${backgroundBrightness}&v=${v}`);
+            const resp = await fetch(`/tap?t=${currentTrial}&r=${currentResponse}&x=${x}&y=${y}&h=${targetHit}&sh=${stimulusType}&sz=${size}&p=${currentPosition}&f=${Shapes.Shape.brightness}&c=${color}&b=${backgroundBrightness}&v=${v}`);
             statusSpan.innerHTML = resp.statusText;
         }
 
@@ -135,6 +96,10 @@ const Rat = (function () {
                     shape = Shapes.Star;
                     stimulusType = "star"
                     break;
+                case "block":
+                    shape = Shapes.Block;
+                    stimulusType = "block"
+                    break;
             }
             shape.clear();
             if (!hidden) {
@@ -159,7 +124,7 @@ const Rat = (function () {
             switch (data.command) {
                 case "close":
                     console.log("Closing!");
-                    open = false;
+                //    open = false;
                     source.close();
                     statusSpan.innerHTML = "The server has closed the connection.";
                     break;
@@ -171,11 +136,15 @@ const Rat = (function () {
                     statusSpan.innerHTML = "Star";
                     selectShape(data.command);
                     break;
+                case "block":
+                    statusSpan.innerHTML = "Block";
+                    selectShape(data.command);
+                    break;
                 case "show":
                     statusSpan.innerHTML = "Show stimulus";
                     shape && shape.draw();
                     hidden = false;
-                    relativeStartTime = Date.now();
+                   // relativeStartTime = Date.now();
                     currentTrial++;
                     currentResponse = 0;
                     break;
@@ -246,7 +215,7 @@ const Rat = (function () {
                     statusSpan.innerHTML = "Left";
                     currentPosition = "Left";
                     shape.clear();
-                    [Shapes.Circle, Shapes.Star].forEach(elem => elem.setPosition({ x: LEFT_X, y: POSITION_Y }));
+                    [Shapes.Circle, Shapes.Star, Shapes.Block].forEach(elem => elem.setPosition({ x: LEFT_X, y: POSITION_Y }));
                     animationPosition.x = LEFT_X;
                     direction = ANIMATION_STEP;
                     if (!hidden) {
@@ -258,7 +227,7 @@ const Rat = (function () {
                     statusSpan.innerHTML = "Right";
                     currentPosition = "Right";
                     direction = -1 * ANIMATION_STEP;
-                    [Shapes.Circle, Shapes.Star].forEach(elem => elem.setPosition({ x: RIGHT_X, y: POSITION_Y }));
+                    [Shapes.Circle, Shapes.Star, Shapes.Block].forEach(elem => elem.setPosition({ x: RIGHT_X, y: POSITION_Y }));
                     animationPosition.x = RIGHT_X;
                     if (!hidden) {
                         shape.draw();
@@ -268,7 +237,7 @@ const Rat = (function () {
                     shape.clear();
                     statusSpan.innerHTML = "Centre";
                     currentPosition = "Centre";
-                    [Shapes.Circle, Shapes.Star].forEach(elem => elem.setPosition({ x: CENTER_X, y: POSITION_Y }));
+                    [Shapes.Circle, Shapes.Star, Shapes.Block].forEach(elem => elem.setPosition({ x: CENTER_X, y: POSITION_Y }));
                     animationPosition.x = CENTER_X;
                     if (!hidden) {
                         shape.draw();
@@ -283,18 +252,19 @@ const Rat = (function () {
         async function initialise() {
             source.addEventListener("open", () => {
                 statusSpan.innerHTML = "Connection to the server established";
-                open = true;
+            //    open = true;
             });
 
             source.addEventListener("message", messageHandler);
             source.addEventListener("error", (e) => {
                 statusSpan.innerHTML = "<strong>There was an EventSource error!</strong> (check console for details)";
                 console.log("There was an EventSource error:", e);
-                open = false;
+            //    open = false;
             });
             attachListeners();
             Shapes.Circle.initialise(context, animationPosition, CIRCLE_SMALL_R, color, INITIAL_STIMULUS_BRIGHTNESS);
             Shapes.Star.initialise(context, animationPosition, 7, STAR_SMALL_R1, STAR_SMALL_R2, color, INITIAL_STIMULUS_BRIGHTNESS);
+            Shapes.Block.initialise(context, animationPosition);
 
             backgroundBrightness = INITIAL_BACKGROUND_BRIGHTNESS;
             canvas.style.backgroundColor = getBackgroundColor();
@@ -305,26 +275,26 @@ const Rat = (function () {
 
             window.addEventListener("beforeunload", function () {
                 source.close();
-                open = false;
+            //    open = false;
             });
-
-            console.log("Starting timer");
-            experimentClock = setInterval(async function () {
-                const now = Date.now();
-                if (open) {
-                    fetch(`/time?at=${now - ABSOLUTE_START_TIME}&rt=${currentTrial > 0 ? now - relativeStartTime : 0}`)
-                        .catch(e => {
-                            window.clearInterval(experimentClock);
-                            experimentClock = null;
-                            statusSpan.innerHTML = e.message;
-                            console.log("Timer killed");
-                        });
-                }
-                else {
-                    clearInterval(experimentClock);
-                    experimentClock = null;
-                }
-            }, 1000);
+            /* 
+                        console.log("Starting timer");
+                        experimentClock = setInterval(async function () {
+                            const now = Date.now();
+                            if (open) {
+                                fetch(`/time?at=${now - ABSOLUTE_START_TIME}&rt=${currentTrial > 0 ? now - relativeStartTime : 0}`)
+                                    .catch(e => {
+                                        window.clearInterval(experimentClock);
+                                        experimentClock = null;
+                                        statusSpan.innerHTML = e.message;
+                                        console.log("Timer killed");
+                                    });
+                            }
+                            else {
+                                clearInterval(experimentClock);
+                                experimentClock = null;
+                            }
+                        }, 1000); */
         }
 
         initialise();

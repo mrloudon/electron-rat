@@ -50,22 +50,6 @@ function writeString(str){
     }   
 }
 
-/* function writeCSV(csv) {
-    if (!fName) {
-        return;
-    }
-    try {
-        if (!fs.existsSync(fName)) {
-            fs.writeFileSync(fName, CSV_HEADER);
-        }
-        fs.appendFile(fName, csv, function (err) {
-            if (err) throw err;
-        });
-    } catch (err) {
-        console.error(err)
-    }
-} */
-
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1024,
@@ -164,9 +148,9 @@ expressApp.get("/tap", function (req, res) {
         response: req.query.r,
         x: req.query.x,
         y: req.query.y,
-        absoluteTime: req.query.at,
-        relativeTime: req.query.rt,
-        trialTime: req.query.tt,
+    //    absoluteTime: req.query.at,
+    //    relativeTime: req.query.rt,
+    //    trialTime: req.query.tt,
         shape: req.query.sh,
         success: req.query.h,
         color: req.query.c,
@@ -178,13 +162,13 @@ expressApp.get("/tap", function (req, res) {
 //    writeCSV(`"${req.query.t}","${req.query.r}","${req.query.tt}","${req.query.at}","${req.query.rt}","${req.query.x}","${req.query.y}","${req.query.h}","${req.query.v}","${req.query.sh}","${req.query.c}","${req.query.sz}","${req.query.p}","${req.query.b}","${req.query.f}"\n`);
 });
 
-expressApp.get("/time", function (req, res) {
+/* expressApp.get("/time", function (req, res) {
     res.send("OK");
     mainWindow.webContents.send("time", {
         absoluteTime: req.query.at,
         relativeTime: req.query.rt
     });
-});
+}); */
 
 function bindServers() {
     host = getHostIP();
@@ -215,6 +199,9 @@ ipcMain.on("circle", () => {
 });
 ipcMain.on("star", () => {
     sendCommand("star");
+});
+ipcMain.on("block", () => {
+    sendCommand("block");
 });
 ipcMain.on("startAnimation", () => {
     sendCommand("startAnimation");

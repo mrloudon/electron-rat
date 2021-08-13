@@ -2,14 +2,16 @@
 // eslint-disable-next-line no-unused-vars
 const Shapes = (function () {
 
+    const CANVAS_WIDTH = 1000;
+    const CANVAS_HEIGHT = 600;
     const PX_PER_MM = 600 / 93;
     const CM_1 = 10 * PX_PER_MM;
-    const CIRCLE_SMALL_R = CM_1;
-    const CIRCLE_LARGE_R = 2 * CM_1;
-    const STAR_SMALL_R1 = 1.25 * CM_1;
-    const STAR_SMALL_R2 = 0.75 * CM_1;
-    const STAR_LARGE_R1 = 2 * CM_1;
-    const STAR_LARGE_R2 = CM_1;
+    const CIRCLE_SMALL_R = 2 * CM_1;
+    const CIRCLE_LARGE_R = 3 * CM_1;
+    const STAR_SMALL_R1 = 2.0 * CM_1;
+    const STAR_SMALL_R2 = CM_1;
+    const STAR_LARGE_R1 = 3 * CM_1;
+    const STAR_LARGE_R2 = 2 *CM_1;
 
     function pointInPoly(point, vs) {
         // ray-casting algorithm based on
@@ -47,13 +49,45 @@ const Shapes = (function () {
 
     const Circle = Object.create(Shape);
     const Star = Object.create(Shape);
+    const Block = Object.create(Shape);
+
+    Block.initialise = function(context, center){
+
+        this.setSize = function(){};
+
+        this.setPosition = function(position){
+            this.center = position;
+            this.boundary = [Math.floor(this.center.x - (this.width / 2)), 
+                Math.floor(this.center.y - this.height / 2),
+                this.width, this.height];
+        };
+
+        this.draw = function() {
+            this.ctx.clearRect(...this.boundary);
+            this.ctx.fillStyle = this.rgb;
+            this.ctx.fillRect(...this.boundary);
+        };
+
+        this.clear = function() {
+            this.ctx.clearRect(...this.boundary);
+        };
+
+        this.inside = function(point) {
+            return (
+                (point.x < (this.boundary[0] + this.width)) && 
+                (point.x > this.boundary[0]) && 
+                (point.y < (this.boundary[1] + this.height)) && 
+                (point.y > this.boundary[1]));
+        };
+
+        this.center = center;
+        this.ctx = context;
+        this.width = Math.floor(CANVAS_WIDTH / 3);
+        this.height = Math.floor(CANVAS_HEIGHT - 50);
+        this.setPosition(center);
+    }
 
     Circle.initialise = function(context, center, radius){
-
-        this.setPosition = function(pos) {
-            this.center = pos;
-            this.boundary = [this.center.x - this.radius - 1, this.center.y - this.radius - 1, 2 * this.radius + 2, 2 * this.radius + 2];
-        };
 
         this.setSize = function(size) {
             switch (size) {
@@ -157,6 +191,6 @@ const Shapes = (function () {
         this.setPosition(center);
     };
 
-    return { Shape, Circle, Star };
+    return { Shape, Circle, Star, Block };
 
 }());

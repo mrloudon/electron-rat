@@ -1,22 +1,44 @@
 
 
-function fet(options) {
-    const { timeout = 1000 } = options;
+const Shape = {
+    brightness: 127,
+    color: "green",
 
+    get rgb() {
+        switch (this.color) {
+            case "green": return `rgb(0,${this.brightness},0)`;
+            case "grey": return `rgb(${this.brightness},${this.brightness},${this.brightness})`;
+            default: return `rgb(${this.brightness},0,0)`;
+        }
+    }
+};
 
-    const temp = {
-        ...options,
-        name: "Hello"
+const Block = Object.create(Shape);
+
+Block.initialise = function(context, center){
+
+    this.setSize = function(){};
+
+    this.whoAmI = function(){
+        console.log(this === Block);
     };
 
-    console.log(timeout);
-    return temp;
+    this.setPosition = function(position){
+        this.position = position;
+        this.boundary = [this.center.x - this.width / 2 - 1, this.center.y - this.height / 2 - 1,
+            this.width, this.height];
+    };
+
+    this.width = 40;
+    this.height = 20;
+    this.center = center;
+    this.ctx = context;
 }
 
+Block.initialise("my context", {x: 200, y: 100});
+Block.setPosition("my position");
 
-const result = fet({
-    timeout: 50,
-    pet: "Cat"
-});
-
-console.log(result);
+console.log(Block);
+console.log(Block.boundary);
+console.log(Block.position);
+Block.whoAmI();

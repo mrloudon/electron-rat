@@ -72,14 +72,24 @@ let mode = "mode-3";
 let currentTrial = 0;
 let waitingForBreak = false;
 let generalTimer, experimentTimer;
-let phase2Data = {
+/* let phase2Data = {
     trial: 0,
     timeOut: 0,
     tapTime: 0,
     irBreakTime: 0
+}; */
+
+let trialData = {
+    trial: 0,
+    experimentStartTime: 0,
+    absoluteTrialStartTime: 0,
+    responseTime: 0,
+    breakTime: 0,
+    responseData: null,
+    phase2TimeOut: 0
 };
 
-let experimentStartTime = 0, absoluteStartTime = 0, trialStartTime = 0;
+//let experimentStartTime = 0, absoluteStartTime = 0, trialStartTime = 0;
 
 function showVisible() {
     console.log("Show visible");
@@ -119,8 +129,8 @@ function experimentTimerTimeout(){
     }
 
     const now = Date.now();
-    const at = now - absoluteStartTime;
-    const rt = now - trialStartTime;
+    const at = now - trialData.experimentStartTime;
+    const rt = now - trialData.absoluteTrialStartTime;
 
     absoluteSSpan.innerHTML = Math.floor(Number(at / 1000));
     absoluteHmsSpan.innerHTML = msToTime(at);
@@ -130,6 +140,7 @@ function experimentTimerTimeout(){
 
 ipc.on("tap", async (event, data) => {
     const now = Date.now();
+    trialData.responseData = data;
     trialTD.innerHTML = currentTrial;
     responseTD.innerHTML = data.response;
     xTD.innerHTML = data.x.toString();
@@ -147,8 +158,8 @@ ipc.on("tap", async (event, data) => {
                 showHidden();
                 await fetch(`${ROUTER_URL}/b`);
                 waitingForBreak = true;
-                phase2Data.tapTime = now - trialStartTime;
-                phase2Data.timeOut = 0;
+                trialData.responseTime = now - trialData.absoluteTrialStartTime;
+                trialData.phase2TimeOut = 0;
                 feedbackAlert.innerHTML = `Trial ${currentTrial}<br>${phase2Data.tapTime}`;
                 break;
             case "mode-3":
@@ -164,7 +175,6 @@ ipc.on("tap", async (event, data) => {
                 }
                 break;
         }
-        showHidden(); // Successful tap hides the stimulus
         console.log("Correct tap");
     }
 });
@@ -175,12 +185,13 @@ ipc.on("udp", (event, data) => {
         const rewardTime = debugCB.checked ? 1000 : PHASE_1_REWARD_TIME;
         const nTrials = debugCB.checked ? 5 : PHASE_1_N_TRIALS;
         console.log(data);
+        trialData.breakTime = data;
         feedbackAlert.innerHTML = `Trial ${currentTrial}<br>RT: ${data}`;
         if (currentTrial === 1) {
-            ipc.send("write", PHASE_1_CSV_HEADER + `${currentTrial},${data},${absoluteStartTime}\n`);
+            ipc.send("write", PHASE_1_CSV_HEADER + `${currentTrial},${data},${trialData.absoluteTrialStartTime}\n`);
         }
         else {
-            ipc.send("write", `${currentTrial},${data},${absoluteStartTime}\n`);
+            ipc.send("write", `${currentTrial},${data},${trialData.absoluteTrialStartTime}\n`);
         }
         if (currentTrial === nTrials) {
             rewardBtn.disabled = false;
@@ -190,7 +201,7 @@ ipc.on("udp", (event, data) => {
         else {
             generalTimer = setTimeout(async () => {
                 await fetch(`${ROUTER_URL}/b`);
-                absoluteStartTime = Date.now() - experimentStartTime;
+                trialData.absoluteTrialStartTime = Date.now() - trialData.experimentStartTime;
                 waitingForBreak = true;
                 currentTrial++;
                 feedbackAlert.innerHTML = `Trial ${currentTrial}`;
@@ -200,8 +211,8 @@ ipc.on("udp", (event, data) => {
 
     function handleMode2() {
         const nTrials = debugCB.checked ? DEBUG_N_TRIALS : PHASE_2_N_TRIALS;
-        phase2Data.irBreakTime = data;
-        const csv = `${phase2Data.trial},${phase2Data.timeOut},${phase2Data.tapTime},${phase2Data.irBreakTime}\n`;
+        trialData.breakTime = data;
+        const csv = `${trialData.trial},${trialData.phase2TimeOut},${trialData.responseTime},${trialData.breakTime}\n`;
 
         currentTrial++;
         if (currentTrial > nTrials) {
@@ -213,7 +224,7 @@ ipc.on("udp", (event, data) => {
             generalTimer = setTimeout(beginPhase2Trial, debugCB.checked ? DEBUG_REWARD_TIME : PHASE_2_REWARD_TIME);
             feedbackAlert.innerHTML = `Trial ${currentTrial}<br>RT: ${data}`;
         }
-        if (phase2Data.trial === 1) {
+        if (trialData.trial === 1) {
             ipc.send("write", `${PHASE_2_CSV_HEADER}${csv}`);
         }
         else {
@@ -381,11 +392,10 @@ function attachListeners() {
 }
 
 function beginPhase2Trial() {
-    phase2Data.trial = currentTrial;
+    trialData.trial = currentTrial;
+    trialData.absoluteTrialStartTime = Date.now();
     ipc.send("show");
     showVisible();
-    trialStartTime = Date.now();
-    /** The first trial has an automatic reward subsequent trials require a successful tap */
     feedbackAlert.innerHTML = `Trial ${currentTrial}`;
     generalTimer = setTimeout(async function hideStimulusAndReward() {
         ipc.send("hide");
@@ -417,15 +427,15 @@ async function rewardBtnClick(event) {
             currentTrial = 1;
             feedbackAlert.innerHTML = `Trial ${currentTrial}`;
             await fetch(`${ROUTER_URL}/b`);
-            experimentStartTime = Date.now();
-            absoluteStartTime = 0;
+            trialData.experimentStartTime = Date.now();
+            trialData.absoluteTrialStartTime = trialData.experimentStartTime;
             waitingForBreak = true;
             break;
         case "mode-2":
             rewardBtn.disabled = true;
             currentTrial = 1;
             waitingForBreak = false;
-            absoluteStartTime = Date.now();
+            trialData.experimentStartTime = Date.now();
             experimentTimer = setInterval(experimentTimerTimeout, 1000);
             beginPhase2Trial();
             break;
@@ -506,6 +516,7 @@ function initialise() {
             hostSpans.forEach(item => item.innerHTML = result);
         });
     modeRBs.forEach(item => item.addEventListener("click", modeClick));
+        trialData.experimentStartTime = Date.now();
 
     /*  clockTimer = setInterval(() => {
          let diff = Date.now() - startTime;

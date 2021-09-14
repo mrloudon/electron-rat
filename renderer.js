@@ -10,6 +10,7 @@ const ipc = require("electron").ipcRenderer;
 const MILLIS_SEC = 1000;
 const MILLIS_MIN = 1000 * 60;
 const MILLIS_HR = 60 * MILLIS_MIN;
+const CLOCK_UPDATE = 100;
 const INITIAL_BACKGROUND = 127;
 const INITIAL_STIMULUS = 127;
 const ACTIVE_BTN = "#FCF6CF";
@@ -30,9 +31,9 @@ const PHASE_2_CSV_HEADER = "Trial,Time Out,Tap Time,IR Break Time\n";
 
 const trialTD = document.getElementById("trial-td");
 const responseTD = document.getElementById("response-td");
-const trialTimeTD = document.getElementById("trial-time-td");
-const relativeTimeTD = document.getElementById("relative-time-td");
-const absoluteTimeTD = document.getElementById("absolute-time-td");
+const absoluteTrialTimeTD = document.getElementById("absolute-trial-time-td");
+const relativeResponseTimeTD = document.getElementById("relative-response-time-td");
+const relativeBreakTimeTD = document.getElementById("relative-ir-time-td");
 const xTD = document.getElementById("x-td");
 const yTD = document.getElementById("y-td");
 const successTD = document.getElementById("success-td");
@@ -160,7 +161,7 @@ ipc.on("tap", async (event, data) => {
                 waitingForBreak = true;
                 trialData.responseTime = now - trialData.absoluteTrialStartTime;
                 trialData.phase2TimeOut = 0;
-                feedbackAlert.innerHTML = `Trial ${currentTrial}<br>${phase2Data.tapTime}`;
+                feedbackAlert.innerHTML = `Trial ${currentTrial}<br>${trialData.responseTime}`;
                 break;
             case "mode-3":
                 ipc.send("hide");
@@ -187,11 +188,12 @@ ipc.on("udp", (event, data) => {
         console.log(data);
         trialData.breakTime = data;
         feedbackAlert.innerHTML = `Trial ${currentTrial}<br>RT: ${data}`;
+        relativeBreakTimeTD.innerHTML = data;
         if (currentTrial === 1) {
-            ipc.send("write", PHASE_1_CSV_HEADER + `${currentTrial},${data},${trialData.absoluteTrialStartTime}\n`);
+            ipc.send("write", PHASE_1_CSV_HEADER + `${currentTrial},${data},${trialData.absoluteTrialStartTime - trialData.experimentStartTime}\n`);
         }
         else {
-            ipc.send("write", `${currentTrial},${data},${trialData.absoluteTrialStartTime}\n`);
+            ipc.send("write", `${currentTrial},${data},${trialData.absoluteTrialStartTime - trialData.experimentStartTime}\n`);
         }
         if (currentTrial === nTrials) {
             rewardBtn.disabled = false;
@@ -201,10 +203,13 @@ ipc.on("udp", (event, data) => {
         else {
             generalTimer = setTimeout(async () => {
                 await fetch(`${ROUTER_URL}/b`);
-                trialData.absoluteTrialStartTime = Date.now() - trialData.experimentStartTime;
+                trialData.absoluteTrialStartTime = Date.now();
                 waitingForBreak = true;
                 currentTrial++;
                 feedbackAlert.innerHTML = `Trial ${currentTrial}`;
+                trialTD.innerHTML = currentTrial;
+                absoluteTrialTimeTD.innerHTML = trialData.absoluteTrialStartTime - trialData.experimentStartTime;
+                relativeBreakTimeTD.innerHTML = "&mdash;";
             }, rewardTime);
         }
     }
@@ -402,33 +407,37 @@ function beginPhase2Trial() {
         showHidden();
         await fetch(`${ROUTER_URL}/b`);
         waitingForBreak = true;
-        phase2Data.timeOut = 1;
-        phase2Data.tapTime = 0;
+        trialData.phase2TimeOut = 1;
+        trialData.responseTime = 0;
         feedbackAlert.innerHTML = `Trial ${currentTrial}<br>Time Out`;
         responseTD.innerHTML = "&mdash;";
-        trialTimeTD.innerHTML = "&mdash;";
-        relativeTimeTD.innerHTML = "&mdash;";
-        absoluteTimeTD.innerHTML = "&mdash;";
+        absoluteTrialTimeTD.innerHTML = "&mdash;";
+        relativeResponseTimeTD.innerHTML = "&mdash;";
+        relativeBreakTimeTD.innerHTML = "&mdash;";
         xTD.innerHTML = "&mdash;";
         yTD.innerHTML = "&mdash;";
         successTD.innerHTML = "&mdash;";
-        shapeTD.innerHTML = "&mdash;";
-        sizeTD.innerHTML = "&mdash;";
-        colorTD.innerHTML = "&mdash;";
+        //shapeTD.innerHTML = "&mdash;";
+        //sizeTD.innerHTML = "&mdash;";
+        //colorTD.innerHTML = "&mdash;";
         visibleTD.innerHTML = "&mdash;";
     }, debugCB.checked ? DEBUG_PHASE_2_TIMEOUT_TIME : PHASE_2_TIMEOUT_TIME);
 }
 
 async function rewardBtnClick(event) {
     const target = event.currentTarget;
+    document.querySelectorAll(".data-table-row td").forEach(elem => elem.innerHTML = "&mdash;");
+    experimentTimer = setInterval(experimentTimerTimeout, CLOCK_UPDATE);
     switch (mode) {
         case "mode-1":
             rewardBtn.disabled = true;
             currentTrial = 1;
             feedbackAlert.innerHTML = `Trial ${currentTrial}`;
+            trialTD.innerHTML = currentTrial;
             await fetch(`${ROUTER_URL}/b`);
             trialData.experimentStartTime = Date.now();
             trialData.absoluteTrialStartTime = trialData.experimentStartTime;
+            absoluteTrialTimeTD.innerHTML = 0;
             waitingForBreak = true;
             break;
         case "mode-2":
@@ -436,7 +445,6 @@ async function rewardBtnClick(event) {
             currentTrial = 1;
             waitingForBreak = false;
             trialData.experimentStartTime = Date.now();
-            experimentTimer = setInterval(experimentTimerTimeout, 1000);
             beginPhase2Trial();
             break;
         case "mode-3":
@@ -517,27 +525,6 @@ function initialise() {
         });
     modeRBs.forEach(item => item.addEventListener("click", modeClick));
         trialData.experimentStartTime = Date.now();
-
-    /*  clockTimer = setInterval(() => {
-         let diff = Date.now() - startTime;
-         let hours = Math.floor(diff / MILLIS_HR).toString();
-         diff %= MILLIS_HR;
-         let mins = Math.floor(diff / MILLIS_MIN).toString();
-         diff %= MILLIS_MIN;
-         let secs = Math.floor(diff / MILLIS_SEC).toString();
-         diff %= MILLIS_SEC;
-         if (hours.length < 2) {
-             hours = "0" + hours;
-         }
-         if (mins.length < 2) {
-             mins = "0" + mins;
-         }
-         if (secs.length < 2) {
-             secs = "0" + secs;
-         }
-         absoluteHmsSpan.innerHTML = `${hours}:${mins}:${secs}`;
-     }, 1000); */
-
 }
 
 initialise();

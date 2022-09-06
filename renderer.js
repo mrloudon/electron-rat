@@ -427,9 +427,9 @@ function beginPhase2Trial() {
 async function rewardBtnClick(event) {
     const target = event.currentTarget;
     document.querySelectorAll(".data-table-row td").forEach(elem => elem.innerHTML = "&mdash;");
-    experimentTimer = setInterval(experimentTimerTimeout, CLOCK_UPDATE);
     switch (mode) {
         case "mode-1":
+            experimentTimer = setInterval(experimentTimerTimeout, CLOCK_UPDATE);
             rewardBtn.disabled = true;
             currentTrial = 1;
             feedbackAlert.innerHTML = `Trial ${currentTrial}`;
@@ -441,6 +441,7 @@ async function rewardBtnClick(event) {
             waitingForBreak = true;
             break;
         case "mode-2":
+            experimentTimer = setInterval(experimentTimerTimeout, CLOCK_UPDATE);
             rewardBtn.disabled = true;
             currentTrial = 1;
             waitingForBreak = false;

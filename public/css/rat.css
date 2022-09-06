@@ -5,8 +5,9 @@
 
 canvas {
     background-color: white;
-    margin-top: 10px;
-    touch-action: manipulation;
+    margin: 0;
+    /* touch-action: manipulation; */
+    touch-action: none;
 }
 
 #controls {

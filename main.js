@@ -271,8 +271,8 @@ UDPServer.on("error", (err) => {
 });
 
 UDPServer.on("message", (msg) => {
-    //console.log(`UDP server got: ${msg} from ${rinfo.address}:${rinfo.port}`);
-    //console.log(msg.toString("utf8"));
+    console.log(`UDP server got: ${msg}`);
+    console.log(msg.toString("utf8"));
     mainWindow.webContents.send("udp", msg.toString("utf8"));
 });
 

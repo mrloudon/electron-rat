@@ -54,12 +54,20 @@ const Rat = (function () {
             return `rgb(${backgroundBrightness},${backgroundBrightness},${backgroundBrightness})`;
         }
 
-        async function onTap(e) {
+        async function onTouchStart(e) {
+            let touch;
+            e.preventDefault();
             currentResponse++;
+            touch = e.touches[0];
             //        const now = Date.now();
-            const rect = e.target.getBoundingClientRect();
-            const x = Math.round(e.clientX - rect.left); //x position within the element.
-            const y = Math.round(e.clientY - rect.top);  //y position within the element.
+            // const rect = e.target.getBoundingClientRect();
+            // const x = Math.round(e.clientX - rect.left); //x position within the element.
+            // const y = Math.round(e.clientY - rect.top);  //y position within the element.
+
+            const rect = touch.target.getBoundingClientRect();
+            const x = Math.round(touch.clientX - rect.left); //x position within the element.
+            const y = Math.round(touch.clientY - rect.top);  //y position within the element.
+
             const targetHit = shape.inside({ x, y });
             const v = hidden ? "hidden" : "visible";
             //        const relativeResponseTime = currentTrial > 0 ? now - relativeStartTime : 0;
@@ -68,6 +76,12 @@ const Rat = (function () {
             const resp = await fetch(`/tap?t=${currentTrial}&r=${currentResponse}&x=${x}&y=${y}&h=${targetHit}&sh=${stimulusType}&sz=${size}&p=${currentPosition}&f=${Shapes.Shape.brightness}&c=${color}&b=${backgroundBrightness}&v=${v}`);
             statusSpan.innerHTML = resp.statusText;
         }
+
+       /*  function onMouseDown(e){
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        } */
 
         function animationLoop() {
             if (stopAnimation) {
@@ -108,7 +122,8 @@ const Rat = (function () {
         }
 
         function attachListeners() {
-            canvas.addEventListener("mousedown", onTap);
+            //canvas.addEventListener("mousedown", onMouseDown);
+            canvas.addEventListener("touchstart", onTouchStart);
         }
 
         function messageHandler(message) {
@@ -262,6 +277,12 @@ const Rat = (function () {
             //    open = false;
             });
             attachListeners();
+
+            // added 6/9/2022
+            canvas.width = window.innerWidth - 15;
+            canvas.height = window.innerHeight - 54;
+
+
             Shapes.Circle.initialise(context, animationPosition, CIRCLE_SMALL_R, color, INITIAL_STIMULUS_BRIGHTNESS);
             Shapes.Star.initialise(context, animationPosition, 7, STAR_SMALL_R1, STAR_SMALL_R2, color, INITIAL_STIMULUS_BRIGHTNESS);
             Shapes.Block.initialise(context, animationPosition);

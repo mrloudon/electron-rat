@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <!--  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self';">
+    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'"> -->
+    <title>Rat Trainer - V2</title>
+    <link rel="stylesheet" href="electron.css">
+</head>
+
+<body>
+    <div class="row">
+        <div class="col-title">
+            <h4>Rat Trainer [Pilot Study]</h4>
+        </div>
+        <div class="col-rbs">
+            <input type="radio" name="mode-radios" value="1" id="mode-radio-1">
+            <label for="mode-radio-1">Phase 1</label>
+            <input type="radio" name="mode-radios" value="2" id="mode-radio-2">
+            <label for="mode-radio-2">Phase 2</label>
+            <input type="radio" name="mode-radios" value="3" id="mode-radio-3" checked>
+            <label for="mode-radio-3">Phase 3</label>
+            <input type="checkbox" id="debug-checkbox">
+            <label for="debug-checkbox">Debug</label>
+        </div>
+        <div class="col-feedback">
+            &nbsp;
+        </div>
+        <div class="col-alert visibility-alert">
+            <h4>Stimulus Hidden</h4>
+        </div>
+    </div>
+    
+    <div id="main-page">
+        <div class="grid-time-container">
+            <fieldset>
+                <legend>
+                    Absolute Time
+                </legend>
+                <div class="center">
+                    <span class="time-span" id="absolute-hms-span">00:00:00</span><br>
+                    <small id="absolute-s-span">0</small>
+                </div>
+            </fieldset>
+            <fieldset>
+                <legend style="display: none;">
+                    Relative Time
+                </legend>
+                <div class="center" style="display: none;">
+                    <span class="time-span" id="relative-hms-span">00:00:00</span><br>
+                    <small id="relative-s-span">0</small>
+                </div>
+            </fieldset>
+            <fieldset class="feedback-label">
+                <legend>
+                    Output File
+                </legend>
+                <button type="button" class="ordinary-btn" id="file-btn">Select File</button>
+                Writing results to: <span id="file-span"> <span class="warning">Not saving</span></span>
+            </fieldset>
+        </div>
+        <div class="grid-4-container">
+            <fieldset>
+                <legend>Stimulus Shape</legend>
+                <button type="button" class="radio-btn shape-btn  default-btn">Circle</button>
+                <button type="button" class="radio-btn shape-btn">Star</button>
+                <button type="button" class="radio-btn shape-btn">Block</button>
+            </fieldset>
+            <fieldset>
+                <legend>Stimulus Colour</legend>
+                <button type="button" class="radio-btn color-btn  default-btn">Green</button>
+                <button type="button" class="radio-btn color-btn">Grey</button>
+            </fieldset>
+            <fieldset>
+                <legend>Stimulus Size</legend>
+                <button type="button" class="radio-btn size-btn  default-btn">Small</button>
+                <button type="button" class="radio-btn size-btn">Large</button>
+            </fieldset>
+            <fieldset>
+                <legend>Stimulus Position</legend>
+                <button type="button" class="radio-btn position-btn  default-btn">Left</button>
+                <button type="button" class="radio-btn position-btn">Centre</button>
+                <button type="button" class="radio-btn position-btn">Right</button>
+            </fieldset>
+        </div>
+        <div class="grid-3-container">
+            <fieldset>
+                <legend>Animation</legend>
+                <button type="button" class="radio-btn animation-btn">Start</button>
+                <button type="button" class="radio-btn animation-btn default-btn">Stop</button>
+            </fieldset>
+            <fieldset style="padding-top: 15px;" class="feedback-label">
+                <legend>Automatic Controls</legend>
+                <label for="isi-ip">Inter stimulus interval:</label>
+                <input type="number" id="isi-ip" name="isi-ip" min="1" max="100" value="30">
+                &nbsp;
+                <label for="auto-cb">Auto:</label>
+                <input type="checkbox" id="auto-cb" name="auto-cb">
+            </fieldset>
+            <fieldset>
+                <legend>Manual Controls</legend>
+                <button type="button" class="radio-btn visibility-btn">Show Stimulus</button>
+                <button type="button" class="radio-btn visibility-btn  default-btn">Hide Stimulus</button>
+                <button type="button" id="reward-btn" class="urgent-btn">Reward</button>
+            </fieldset>
+        </div>
+        <div>
+            <fieldset>
+                <legend>Stimulus Luminance</legend>
+                <input type="range" min="0" max="255" value="50" class="slider" id="stimulusRange" name="stimulusRange">
+                <label for="stimulusRange" id="stimulusRangeLabel">0</label>
+            </fieldset>
+            <fieldset>
+                <legend>Background Luminance</legend>
+                <input type="range" min="0" max="255" value="50" class="slider" id="backgroundRange"
+                    name="backgroundRange">
+                <label for="backgroundRange" id="backgroundRangeLabel">0</label>
+            </fieldset>
+        </div>
+
+        <fieldset>
+            <legend>Web Server</legend>
+            <div class="grid-5-container">
+                <div style="padding-top: 10px;">
+                    <span class="feedback-label">Web Server:</span> <span class="host-span feedback">&mdash;</span><span class="feedback">:8080</span>
+                </div>
+                <div style="padding-top: 10px;">
+                    <span class="feedback-label">UDP Server:</span> <span class="host-span feedback"></span><span class="feedback">:8081</span>
+                </div>
+                <div style="padding-top: 10px;">
+                    <span class="feedback-label">N Clients:</span> <span id="clients-span"
+                        class="feedback">&mdash;</span>
+                </div>
+                <div style="padding-top: 10px;">
+                    <span class="feedback-label">Status:</span> <span id="server-status-span"
+                        class="feedback">&mdash;</span>
+                </div>
+                <div>
+                    <button type="button" id="disconnect-btn" class="urgent-btn">Disconnect Clients</button>
+                </div>
+            </div>
+        </fieldset>
+
+        <table>
+            <tr>
+                <th>Trial</th>
+                <th>Response</th>
+                <th>Absolute<br>Trial Time</th>
+                <th>Relative<br>Response Time</th>
+                <th>Relative<br>IR Break Time</th>
+                <th>X</th>
+                <th>Y</th>
+                <th>Success</th>
+                <th>Visible</th>
+                <th>Shape</th>
+                <th>Colour</th>
+                <th>Size</th>
+            </tr>
+            <tr class="data-table-row">
+                <td id="trial-td">&#8212;</td>
+                <td id="response-td">&#8212;</td>
+                <td id="absolute-trial-time-td">&#8212;</td>
+                <td id="relative-response-time-td">&#8212;</td>
+                <td id="relative-ir-time-td">&#8212;</td>
+                <td id="x-td">&#8212;</td>
+                <td id="y-td">&#8212;</td>
+                <td id="success-td">&#8212;</td>
+                <td id="visible-td">&#8212;</td>
+                <td id="shape-td">&#8212;</td>
+                <td id="color-td">&#8212;</td>
+                <td id="size-td">&#8212;</td>
+            </tr>
+        </table>
+    </div>
+    <script src="./renderer-V2.js"></script>
+</body>
+
+</html>

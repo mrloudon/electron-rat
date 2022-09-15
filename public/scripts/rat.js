@@ -77,11 +77,22 @@ const Rat = (function () {
             statusSpan.innerHTML = resp.statusText;
         }
 
-       /*  function onMouseDown(e){
+        async function onMouseDown(e) {
             e.preventDefault();
-            e.stopPropagation();
-            return false;
-        } */
+            currentResponse++;
+            
+            const rect = e.target.getBoundingClientRect();
+            const x = Math.round(e.clientX - rect.left); //x position within the element.
+            const y = Math.round(e.clientY - rect.top);  //y position within the element.
+
+            const targetHit = shape.inside({ x, y });
+            const v = hidden ? "hidden" : "visible";
+            //        const relativeResponseTime = currentTrial > 0 ? now - relativeStartTime : 0;
+            //        const absoluteTrialTime = currentTrial > 0 ? relativeStartTime - ABSOLUTE_START_TIME : 0;
+            //        const resp = await fetch(`/tap?t=${currentTrial}&r=${currentResponse}&x=${x}&y=${y}&h=${targetHit}&at=${now - ABSOLUTE_START_TIME}&rt=${relativeResponseTime}&tt=${absoluteTrialTime}&sh=${stimulusType}&sz=${size}&p=${currentPosition}&f=${Shapes.Shape.brightness}&c=${color}&b=${backgroundBrightness}&v=${v}`);
+            const resp = await fetch(`/tap?t=${currentTrial}&r=${currentResponse}&x=${x}&y=${y}&h=${targetHit}&sh=${stimulusType}&sz=${size}&p=${currentPosition}&f=${Shapes.Shape.brightness}&c=${color}&b=${backgroundBrightness}&v=${v}`);
+            statusSpan.innerHTML = resp.statusText;
+        }
 
         function animationLoop() {
             if (stopAnimation) {
@@ -122,8 +133,8 @@ const Rat = (function () {
         }
 
         function attachListeners() {
-            //canvas.addEventListener("mousedown", onMouseDown);
-            canvas.addEventListener("touchstart", onTouchStart);
+            canvas.addEventListener("mousedown", onMouseDown);
+            //canvas.addEventListener("touchstart", onTouchStart);
         }
 
         function messageHandler(message) {
@@ -139,7 +150,7 @@ const Rat = (function () {
             switch (data.command) {
                 case "close":
                     console.log("Closing!");
-                //    open = false;
+                    //    open = false;
                     source.close();
                     statusSpan.innerHTML = "The server has closed the connection.";
                     break;
@@ -159,7 +170,7 @@ const Rat = (function () {
                     statusSpan.innerHTML = "Show stimulus";
                     shape && shape.draw();
                     hidden = false;
-                   // relativeStartTime = Date.now();
+                    // relativeStartTime = Date.now();
                     currentTrial++;
                     currentResponse = 0;
                     break;
@@ -267,14 +278,14 @@ const Rat = (function () {
         async function initialise() {
             source.addEventListener("open", () => {
                 statusSpan.innerHTML = "Connection to the server established";
-            //    open = true;
+                //    open = true;
             });
 
             source.addEventListener("message", messageHandler);
             source.addEventListener("error", (e) => {
                 statusSpan.innerHTML = "<strong>There was an EventSource error!</strong> (check console for details)";
                 console.log("There was an EventSource error:", e);
-            //    open = false;
+                //    open = false;
             });
             attachListeners();
 
@@ -296,7 +307,7 @@ const Rat = (function () {
 
             window.addEventListener("beforeunload", function () {
                 source.close();
-            //    open = false;
+                //    open = false;
             });
             /* 
                         console.log("Starting timer");

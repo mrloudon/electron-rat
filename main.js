@@ -65,7 +65,7 @@ function createWindow() {
         }
     });
 
-    mainWindow.loadFile("index.html");
+    mainWindow.loadFile("index-V2.html");
 
     mainWindow.once("ready-to-show", () => {
         mainWindow.setMenuBarVisibility(false);

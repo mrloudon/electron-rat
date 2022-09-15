@@ -129,6 +129,7 @@ ipc.on("tap", async (event, data) => {
                 waitingForBreak = true;
                 rewardBtn.innerHTML = "Reward";
                 rewardBtn.disabled = false;
+                feedbackAlert.innerHTML = "Success!";
                 break;
             case "mode-2-manual":
                 generalTimer = setTimeout(doPhase2ManualTrial,
@@ -151,6 +152,7 @@ ipc.on("tap", async (event, data) => {
     }
 });
 
+//IR Break detected
 ipc.on("udp", (event, data) => {
 
     console.log(`UDP: ${data}`);
@@ -360,7 +362,7 @@ function doPhase2AutomaticTrial() {
         showHidden();
         await fetch(`${ROUTER_URL}/b`);
         waitingForBreak = true;
-        feedbackAlert.innerHTML = "Time Out";
+        feedbackAlert.innerHTML = "Auto Time Out";
     }, debugCB.checked ? DEBUG_PHASE_2_TIMEOUT_TIME : PHASE_2_TIMEOUT_TIME);
 }
 
@@ -372,7 +374,7 @@ function doPhase2ManualTrial() {
     generalTimer = setTimeout(async function hideStimulusAndReward() {
         ipc.send("hide");
         showHidden();
-        feedbackAlert.innerHTML = "Time Out";
+        feedbackAlert.innerHTML = "Manual Time Out";
         generalTimer = setTimeout(doPhase2ManualTrial,
             debugCB.checked ? DEBUG_PHASE_2_MANUAL_TIME : PHASE_2_MANUAL_TIME);
     }, debugCB.checked ? DEBUG_PHASE_2_TIMEOUT_TIME : PHASE_2_TIMEOUT_TIME);

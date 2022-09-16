@@ -162,14 +162,6 @@ expressApp.get("/tap", function (req, res) {
 //    writeCSV(`"${req.query.t}","${req.query.r}","${req.query.tt}","${req.query.at}","${req.query.rt}","${req.query.x}","${req.query.y}","${req.query.h}","${req.query.v}","${req.query.sh}","${req.query.c}","${req.query.sz}","${req.query.p}","${req.query.b}","${req.query.f}"\n`);
 });
 
-/* expressApp.get("/time", function (req, res) {
-    res.send("OK");
-    mainWindow.webContents.send("time", {
-        absoluteTime: req.query.at,
-        relativeTime: req.query.rt
-    });
-}); */
-
 function bindServers() {
     host = getHostIP();
     expressApp.listen(PORT, host, function () {

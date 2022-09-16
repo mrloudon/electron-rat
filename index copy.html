@@ -6,7 +6,7 @@
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <!--  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self';">
     <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'"> -->
-    <title>Rat Trainer - V2</title>
+    <title>Rat Trainer</title>
     <link rel="stylesheet" href="electron.css">
 </head>
 
@@ -45,10 +45,10 @@
                 </div>
             </fieldset>
             <fieldset>
-                <legend style="display: none;">
+                <legend>
                     Relative Time
                 </legend>
-                <div class="center" style="display: none;">
+                <div class="center">
                     <span class="time-span" id="relative-hms-span">00:00:00</span><br>
                     <small id="relative-s-span">0</small>
                 </div>
@@ -106,7 +106,7 @@
                 <button type="button" id="reward-btn" class="urgent-btn">Reward</button>
             </fieldset>
         </div>
-        <div class="grid-2-container">
+        <div>
             <fieldset>
                 <legend>Stimulus Luminance</legend>
                 <input type="range" min="0" max="255" value="50" class="slider" id="stimulusRange" name="stimulusRange">
@@ -142,28 +142,39 @@
                 </div>
             </div>
         </fieldset>
+
         <table>
             <tr>
-                <th>N</th>
-                <th>Time</th>
-                <th>Event</th>
-                <th>Param 1</th>
-                <th>Param 2</th>
-                <th>Param 3</th>
-                <th>Param 4</th>
+                <th>Trial</th>
+                <th>Response</th>
+                <th>Absolute<br>Trial Time</th>
+                <th>Relative<br>Response Time</th>
+                <th>Relative<br>IR Break Time</th>
+                <th>X</th>
+                <th>Y</th>
+                <th>Success</th>
+                <th>Visible</th>
+                <th>Shape</th>
+                <th>Colour</th>
+                <th>Size</th>
             </tr>
             <tr class="data-table-row">
-                <td id="n-td">&#8212;</td>
-                <td id="time-td">&#8212;</td>
-                <td id="event-td">&#8212;</td>
-                <td id="param-1-td">&#8212;</td>
-                <td id="param-2-td">&#8212;</td>
-                <td id="param-3-td">&#8212;</td>
-                <td id="param-4-td">&#8212;</td>
+                <td id="trial-td">&#8212;</td>
+                <td id="response-td">&#8212;</td>
+                <td id="absolute-trial-time-td">&#8212;</td>
+                <td id="relative-response-time-td">&#8212;</td>
+                <td id="relative-ir-time-td">&#8212;</td>
+                <td id="x-td">&#8212;</td>
+                <td id="y-td">&#8212;</td>
+                <td id="success-td">&#8212;</td>
+                <td id="visible-td">&#8212;</td>
+                <td id="shape-td">&#8212;</td>
+                <td id="color-td">&#8212;</td>
+                <td id="size-td">&#8212;</td>
             </tr>
         </table>
     </div>
-    <script src="./renderer-V2.js"></script>
+    <script src="./renderer.js"></script>
 </body>
 
 </html>

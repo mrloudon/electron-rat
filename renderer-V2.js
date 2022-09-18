@@ -445,6 +445,7 @@ async function rewardBtnClick(event) {
             showHidden();
             await fetch(`${ROUTER_URL}/b`);
             waitingForBreak = true;
+            feedbackAlert.innerHTML = "IR Break";
             break;
         case "mode-3":
             target.disabled = true;

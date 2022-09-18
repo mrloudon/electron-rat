@@ -168,10 +168,7 @@ function bindServers() {
         console.log("Rat trainer app listening at http://%s:%s", host, PORT);
     });
 
-    UDPServer.bind({
-        address: host,
-        port: UDP_PORT
-    });
+    UDPServer.bind(UDP_PORT);
 }
 
 function sendCommand(command, value) {

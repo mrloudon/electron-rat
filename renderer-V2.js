@@ -24,6 +24,7 @@ const PHASE_2_MANUAL_TIME = 20000;
 const DEBUG_REWARD_TIME = 1000;
 const DEBUG_PHASE_2_TIMEOUT_TIME = 5000;
 const DEBUG_PHASE_2_MANUAL_TIME = 2000;
+const REWARD_BTN_DEAD_TIME = 5000;
 
 const hostSpans = document.querySelectorAll(".host-span");
 const clientsSpan = document.getElementById("clients-span");
@@ -452,18 +453,20 @@ async function rewardBtnClick(event) {
             break;
         case "mode-2-manual":
             clearTimeout(generalTimer);
+            target.disabled = true;
             ipc.send("hide");
             showHidden();
             updateEventTable("Reward", "Phase 2", currentTrial, "Manual");
             await fetch(`${ROUTER_URL}/b`);
             waitingForBreak = true;
+            setTimeout(() => target.disabled = false, REWARD_BTN_DEAD_TIME);
             feedbackAlert.innerHTML = "Waiting for IR break";
             break;
         case "mode-3":
             target.disabled = true;
             updateEventTable("Reward", "Phase 3", currentTrial);
             await fetch(`${ROUTER_URL}/b`);
-            setTimeout(() => target.disabled = false, 2000);
+            setTimeout(() => target.disabled = false, REWARD_BTN_DEAD_TIME);
             break;
     }
 }

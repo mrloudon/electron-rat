@@ -54,32 +54,20 @@ const debugCB = document.getElementById("debug-checkbox");
 const nTD = document.getElementById("n-td");
 const timeTD = document.getElementById("time-td");
 const eventTD = document.getElementById("event-td");
-const param1TD  = document.getElementById("param-1-td");
-const param2TD  = document.getElementById("param-2-td");
-const param3TD  = document.getElementById("param-3-td");
-const param4TD  = document.getElementById("param-4-td");
+const param1TD = document.getElementById("param-1-td");
+const param2TD = document.getElementById("param-2-td");
+const param3TD = document.getElementById("param-3-td");
+const param4TD = document.getElementById("param-4-td");
 
 let mode = "mode-3";
 let currentTrial = 0;
 let waitingForBreak = false;
 let generalTimer, experimentTimer;
 
-let trialData = {
-    trial: 0,
-    experimentStartTime: 0,
-    absoluteTrialStartTime: 0,
-    responseTime: 0,
-    breakTime: 0,
-    responseData: null,
-    phase2TimeOut: 0
-};
-
-//let experimentStartTime = 0, absoluteStartTime = 0, trialStartTime = 0;
-
-let experimentStartTime = Date.now();
+let experimentStartTime;
 let eventCounter = 0;
 
-function updateEventTable(eventName, param1 = "&#8212;", param2 = "&#8212;", param3 = "&#8212;", param4 = "&#8212;"){
+function updateEventTable(eventName, param1 = "&#8212;", param2 = "&#8212;", param3 = "&#8212;", param4 = "&#8212;") {
     const timeStamp = (Date.now() - experimentStartTime) / 1000.0;
     eventCounter++;
     nTD.innerHTML = eventCounter;
@@ -89,6 +77,19 @@ function updateEventTable(eventName, param1 = "&#8212;", param2 = "&#8212;", par
     param2TD.innerHTML = param2;
     param3TD.innerHTML = param3;
     param4TD.innerHTML = param4;
+    if (param1 === "&#8212;") {
+        param1 = "";
+    }
+    if (param2 === "&#8212;") {
+        param2 = "";
+    }
+    if (param3 === "&#8212;") {
+        param3 = "";
+    }
+    if (param4 === "&#8212;") {
+        param4 = "";
+    }
+    ipc.send("write", `${eventCounter},${timeStamp.toFixed(1)},${eventName},${param1},${param2},${param3},${param4}`);
 }
 
 function showVisible() {
@@ -136,11 +137,11 @@ function experimentTimerTimeout() {
 
 ipc.on("tap", async (event, data) => {
     let status = "Unknown";
-    
-    if (data.success === "true" && data.visible === "visible"){
+
+    if (data.success === "true" && data.visible === "visible") {
         status = "Success";
     }
-    else if(data.success === "true" && data.visible === "hidden"){
+    else if (data.success === "true" && data.visible === "hidden") {
         status = "Partial";
     }
     else {
@@ -204,6 +205,7 @@ ipc.on("udp", (event, data) => {
         }
         else {
             generalTimer = setTimeout(async () => {
+                updateEventTable("Reward", "Phase 1", currentTrial);
                 await fetch(`${ROUTER_URL}/b`);
                 waitingForBreak = true;
                 currentTrial++;
@@ -213,14 +215,13 @@ ipc.on("udp", (event, data) => {
     }
 
     function handleMode2AutomaticIRBreak() {
-        feedbackAlert.innerHTML = "Delay 60s";
-        currentTrial++;
+        feedbackAlert.innerHTML = "Automatic<br>Delay 60s";
         generalTimer = setTimeout(doPhase2AutomaticTrial, debugCB.checked ? DEBUG_REWARD_TIME : PHASE_2_REWARD_TIME);
     }
 
     function handleMode2ManualIRBreak() {
         // Wait 60s do manual mode
-        feedbackAlert.innerHTML = "Delay 60s";
+        feedbackAlert.innerHTML = "Manual<br>Delay 60s";
         generalTimer = setTimeout(doPhase2ManualTrial, debugCB.checked ? DEBUG_REWARD_TIME : PHASE_2_REWARD_TIME);
     }
 
@@ -388,16 +389,17 @@ function attachListeners() {
 
 function doPhase2AutomaticTrial() {
     console.log("Phase 2 automatic trial");
+    currentTrial++;
     ipc.send("show");
     showVisible();
-    updateEventTable("Show");
-    feedbackAlert.innerHTML = `Auto Trial ${currentTrial}`;
+    updateEventTable("Show", "Phase 2", "Automatic", currentTrial);
+    feedbackAlert.innerHTML = `Automatic Trial<br>${currentTrial}`;
     generalTimer = setTimeout(async function hideStimulusAndReward() {
         ipc.send("hide");
         showHidden();
-        updateEventTable("Hide");
+        updateEventTable("Hide", "Phase 2", "Automatic");
+        updateEventTable("Reward", "Phase 2", "Automatic");
         await fetch(`${ROUTER_URL}/b`);
-        updateEventTable("Reward");
         waitingForBreak = true;
         feedbackAlert.innerHTML = "Waiting for IR break";
     }, debugCB.checked ? DEBUG_PHASE_2_TIMEOUT_TIME : PHASE_2_TIMEOUT_TIME);
@@ -405,11 +407,12 @@ function doPhase2AutomaticTrial() {
 
 function doPhase2ManualTrial() {
     console.log("Phase 2 manual trial");
+    currentTrial++;
     ipc.send("show");
     showVisible();
-    updateEventTable("Show", "Phase 2", "Manual");
-    feedbackAlert.innerHTML = `Manual Trial ${currentTrial}`;
-    generalTimer = setTimeout(async function hideStimulusAndReward() {
+    updateEventTable("Show", "Phase 2", "Manual", currentTrial);
+    feedbackAlert.innerHTML = `Manual Trial<br>${currentTrial}`;
+    generalTimer = setTimeout(async function hideStimulusNoReward() {
         ipc.send("hide");
         showHidden();
         updateEventTable("Hide", "Phase 2", "Manual");
@@ -427,6 +430,7 @@ async function rewardBtnClick(event) {
             rewardBtn.disabled = true;
             currentTrial = 1;
             feedbackAlert.innerHTML = `Trial ${currentTrial}`;
+            updateEventTable("Reward", "Phase 1", currentTrial);
             await fetch(`${ROUTER_URL}/b`);
             experimentStartTime = Date.now();
             waitingForBreak = true;
@@ -443,12 +447,14 @@ async function rewardBtnClick(event) {
             clearTimeout(generalTimer);
             ipc.send("hide");
             showHidden();
+            updateEventTable("Reward", "Phase 2", currentTrial, "Manual");
             await fetch(`${ROUTER_URL}/b`);
             waitingForBreak = true;
-            feedbackAlert.innerHTML = "IR Break";
+            feedbackAlert.innerHTML = "Waiting for IR break";
             break;
         case "mode-3":
             target.disabled = true;
+            updateEventTable("Reward", "Phase 3", currentTrial);
             await fetch(`${ROUTER_URL}/b`);
             setTimeout(() => target.disabled = false, 2000);
             break;
@@ -525,7 +531,7 @@ function initialise() {
             hostSpans.forEach(item => item.innerHTML = result);
         });
     modeRBs.forEach(item => item.addEventListener("click", modeClick));
-    trialData.experimentStartTime = Date.now();
+    experimentStartTime = Date.now();
 }
 
 initialise();

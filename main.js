@@ -13,8 +13,8 @@ const PORT = 8080;
 const UDP_PORT = 8081;
 
 let host;
-let fName;
 let clients = [];
+let outputStream;
 
 const expressApp = express();
 
@@ -38,13 +38,11 @@ function getHostIP() {
 }
 
 function writeString(str){
-    if (!fName) {
+    if (!outputStream) {
         return;
     }
     try {
-        fs.appendFile(fName, str, function (err) {
-            if (err) throw err;
-        });
+        outputStream.write(str + "\n");
     } catch (err) {
         console.error(err)
     }   
@@ -241,14 +239,18 @@ ipcMain.on("disconnect", () => {
 });
 ipcMain.handle("host", async () => host);
 ipcMain.handle("fName", async () => {
-    fName = dialog.showSaveDialogSync({
-        title: "Output file name",
-        filters: [{
-            name: "CSV files",
-            extensions: ["csv"]
-        }]
+    const fName = dialog.showSaveDialogSync({
+        title: "Output file name"
     });
-    return fName ? path.basename(fName) : "<span class='warning'>Not saving</span>";
+    if(fName){
+        if(outputStream){
+            outputStream.end();
+        }
+        outputStream = fs.createWriteStream(fName);
+    }
+    else{
+        return "<span class='warning'>Not saving</span>";
+    }
 });
 ipcMain.on("write", (event, value) => {
     value && writeString(value);

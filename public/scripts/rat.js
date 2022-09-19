@@ -133,8 +133,8 @@ const Rat = (function () {
         }
 
         function attachListeners() {
-            //canvas.addEventListener("mousedown", onMouseDown);
-            canvas.addEventListener("touchstart", onTouchStart);
+            canvas.addEventListener("mousedown", onMouseDown);
+            //canvas.addEventListener("touchstart", onTouchStart);
         }
 
         function messageHandler(message) {

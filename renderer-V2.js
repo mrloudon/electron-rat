@@ -158,6 +158,7 @@ ipc.on("tap", async (event, data) => {
                 mode = "mode-2-manual"; // We have a successful tap. Cease automatic, switch to manual.
                 ipc.send("hide");
                 showHidden();
+                updateEventTable("Reward", "Phase 2", currentTrial, "Automatic");
                 await fetch(`${ROUTER_URL}/b`);
                 waitingForBreak = true;
                 rewardBtn.innerHTML = "Reward";
@@ -165,8 +166,13 @@ ipc.on("tap", async (event, data) => {
                 feedbackAlert.innerHTML = "Success!<br>Waiting for IR break";
                 break;
             case "mode-2-manual":
-                generalTimer = setTimeout(doPhase2ManualTrial,
-                    debugCB.checked ? DEBUG_REWARD_TIME : PHASE_2_REWARD_TIME);
+                clearTimeout(generalTimer);
+                ipc.send("hide");
+                showHidden();
+                updateEventTable("Reward", "Phase 2", currentTrial, "Manual");
+                await fetch(`${ROUTER_URL}/b`);
+                waitingForBreak = true;
+                feedbackAlert.innerHTML = "Waiting for IR break";
                 break;
             case "mode-3":
                 ipc.send("hide");
@@ -433,7 +439,7 @@ async function rewardBtnClick(event) {
             feedbackAlert.innerHTML = `Trial ${currentTrial}<br>Waiting for IR break`;
             updateEventTable("Reward", "Phase 1", currentTrial);
             await fetch(`${ROUTER_URL}/b`);
-            
+
             waitingForBreak = true;
             break;
         case "mode-2-automatic":

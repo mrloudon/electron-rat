@@ -426,21 +426,22 @@ async function rewardBtnClick(event) {
     const target = event.currentTarget;
     switch (mode) {
         case "mode-1":
+            experimentStartTime = Date.now();
             experimentTimer = setInterval(experimentTimerTimeout, CLOCK_UPDATE);
             rewardBtn.disabled = true;
             currentTrial = 1;
-            feedbackAlert.innerHTML = `Trial ${currentTrial}`;
+            feedbackAlert.innerHTML = `Trial ${currentTrial}<br>Waiting for IR break`;
             updateEventTable("Reward", "Phase 1", currentTrial);
             await fetch(`${ROUTER_URL}/b`);
-            experimentStartTime = Date.now();
+            
             waitingForBreak = true;
             break;
         case "mode-2-automatic":
+            experimentStartTime = Date.now();
             experimentTimer = setInterval(experimentTimerTimeout, CLOCK_UPDATE);
             rewardBtn.disabled = true;
-            currentTrial = 1;
+            currentTrial = 0;
             waitingForBreak = false;
-            experimentStartTime = Date.now();
             doPhase2AutomaticTrial();
             break;
         case "mode-2-manual":

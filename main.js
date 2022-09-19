@@ -247,6 +247,7 @@ ipcMain.handle("fName", async () => {
             outputStream.end();
         }
         outputStream = fs.createWriteStream(fName);
+        return path.basename(fName);
     }
     else{
         return "<span class='warning'>Not saving</span>";

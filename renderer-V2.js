@@ -223,13 +223,19 @@ ipc.on("udp", (event, data) => {
 
     function handleMode2AutomaticIRBreak() {
         feedbackAlert.innerHTML = "Automatic<br>Delay 60s";
-        generalTimer = setTimeout(doPhase2AutomaticTrial, debugCB.checked ? DEBUG_REWARD_TIME : PHASE_2_REWARD_TIME);
+        generalTimer = setTimeout(() => {
+            updateEventTable("End", "Phase 2", "Automatic");
+            doPhase2AutomaticTrial();
+        }, debugCB.checked ? DEBUG_REWARD_TIME : PHASE_2_REWARD_TIME);
     }
 
     function handleMode2ManualIRBreak() {
         // Wait 60s do manual mode
         feedbackAlert.innerHTML = "Manual<br>Delay 60s";
-        generalTimer = setTimeout(doPhase2ManualTrial, debugCB.checked ? DEBUG_REWARD_TIME : PHASE_2_REWARD_TIME);
+        generalTimer = setTimeout(() => {
+            updateEventTable("End", "Phase 2", "Manual");
+            doPhase2ManualTrial();
+        }, debugCB.checked ? DEBUG_REWARD_TIME : PHASE_2_REWARD_TIME);
     }
 
     if (!waitingForBreak) {

@@ -21,12 +21,8 @@ const Rat = (function () {
 
     const INITIAL_STIMULUS_BRIGHTNESS = 127;
     const INITIAL_BACKGROUND_BRIGHTNESS = 127;
-    //const ABSOLUTE_START_TIME = Date.now();
 
-
-    //let experimentClock;
-    //let open;
-
+    const ACCEPT_TOUCHES_DEADTIME = 2000;
 
     function run() {
         const source = new EventSource("/events");
@@ -49,6 +45,7 @@ const Rat = (function () {
         let backgroundBrightness = INITIAL_BACKGROUND_BRIGHTNESS;
         let shape;
         let hidden = true;
+        let acceptTouches = true;
 
         function getBackgroundColor() {
             return `rgb(${backgroundBrightness},${backgroundBrightness},${backgroundBrightness})`;
@@ -59,10 +56,6 @@ const Rat = (function () {
             e.preventDefault();
             currentResponse++;
             touch = e.touches[0];
-            //        const now = Date.now();
-            // const rect = e.target.getBoundingClientRect();
-            // const x = Math.round(e.clientX - rect.left); //x position within the element.
-            // const y = Math.round(e.clientY - rect.top);  //y position within the element.
 
             const rect = touch.target.getBoundingClientRect();
             const x = Math.round(touch.clientX - rect.left); //x position within the element.
@@ -70,17 +63,25 @@ const Rat = (function () {
 
             const targetHit = shape.inside({ x, y });
             const v = hidden ? "hidden" : "visible";
-            //        const relativeResponseTime = currentTrial > 0 ? now - relativeStartTime : 0;
-            //        const absoluteTrialTime = currentTrial > 0 ? relativeStartTime - ABSOLUTE_START_TIME : 0;
-            //        const resp = await fetch(`/tap?t=${currentTrial}&r=${currentResponse}&x=${x}&y=${y}&h=${targetHit}&at=${now - ABSOLUTE_START_TIME}&rt=${relativeResponseTime}&tt=${absoluteTrialTime}&sh=${stimulusType}&sz=${size}&p=${currentPosition}&f=${Shapes.Shape.brightness}&c=${color}&b=${backgroundBrightness}&v=${v}`);
-            const resp = await fetch(`/tap?t=${currentTrial}&r=${currentResponse}&x=${x}&y=${y}&h=${targetHit}&sh=${stimulusType}&sz=${size}&p=${currentPosition}&f=${Shapes.Shape.brightness}&c=${color}&b=${backgroundBrightness}&v=${v}`);
-            statusSpan.innerHTML = resp.statusText;
+            const success = targetHit && (hidden === "visible");
+
+            if (acceptTouches || success) {
+                const resp = await fetch(`/tap?t=${currentTrial}&r=${currentResponse}&x=${x}&y=${y}&h=${targetHit}&sh=${stimulusType}&sz=${size}&p=${currentPosition}&f=${Shapes.Shape.brightness}&c=${color}&b=${backgroundBrightness}&v=${v}`);
+                statusSpan.innerHTML = resp.statusText;
+            }
+
+            if (acceptTouches) {
+                acceptTouches = false;
+                setTimeout(() => {
+                    acceptTouches = true;
+                }, ACCEPT_TOUCHES_DEADTIME);
+            }
         }
 
         async function onMouseDown(e) {
             e.preventDefault();
             currentResponse++;
-            
+
             const rect = e.target.getBoundingClientRect();
             const x = Math.round(e.clientX - rect.left); //x position within the element.
             const y = Math.round(e.clientY - rect.top);  //y position within the element.

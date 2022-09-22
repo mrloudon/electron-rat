@@ -68,6 +68,11 @@ let generalTimer, experimentTimer;
 let experimentStartTime;
 let eventCounter = 0;
 
+let stimulusColor;
+let stimulusShape;
+let stimulusSize;
+let stimulusPosition;
+
 function updateEventTable(eventName, param1 = "&#8212;", param2 = "&#8212;", param3 = "&#8212;", param4 = "&#8212;") {
     const timeStamp = (Date.now() - experimentStartTime) / 1000.0;
     eventCounter++;
@@ -223,6 +228,7 @@ ipc.on("udp", (event, data) => {
 
     function handleMode2AutomaticIRBreak() {
         feedbackAlert.innerHTML = "Automatic<br>Delay 60s";
+        updateEventTable("Delay", "Phase 2", "Automatic", Math.round(PHASE_2_REWARD_TIME / 1000.0));
         generalTimer = setTimeout(() => {
             updateEventTable("End", "Phase 2", "Automatic");
             doPhase2AutomaticTrial();
@@ -232,6 +238,7 @@ ipc.on("udp", (event, data) => {
     function handleMode2ManualIRBreak() {
         // Wait 60s do manual mode
         feedbackAlert.innerHTML = "Manual<br>Delay 60s";
+        updateEventTable("Delay", "Phase 2", "Manual", Math.round(PHASE_2_REWARD_TIME / 1000.0));
         generalTimer = setTimeout(() => {
             updateEventTable("End", "Phase 2", "Manual");
             doPhase2ManualTrial();
@@ -263,7 +270,8 @@ function shapeBtnClick(event) {
         btn.style.backgroundColor = INACTIVE_BTN;
     }
     event.currentTarget.style.backgroundColor = ACTIVE_BTN;
-    switch (event.currentTarget.innerText) {
+    stimulusShape = event.currentTarget.innerText;
+    switch (stimulusShape) {
         case "Circle": ipc.send("circle");
             break;
         case "Star": ipc.send("star");
@@ -271,6 +279,7 @@ function shapeBtnClick(event) {
         case "Block": ipc.send("block");
             break;
     }
+    updateEventTable("Shape", stimulusShape);
 }
 
 function colorBtnClick(event) {
@@ -278,12 +287,14 @@ function colorBtnClick(event) {
         btn.style.backgroundColor = INACTIVE_BTN;
     }
     event.currentTarget.style.backgroundColor = ACTIVE_BTN;
-    switch (event.currentTarget.innerText) {
+    stimulusColor = event.currentTarget.innerText;
+    switch (stimulusColor) {
         case "Green": ipc.send("green");
             break;
         case "Grey": ipc.send("grey");
             break;
     }
+    updateEventTable("Colour", stimulusColor);
 }
 
 function sizeBtnClick(event) {
@@ -291,12 +302,14 @@ function sizeBtnClick(event) {
         btn.style.backgroundColor = INACTIVE_BTN;
     }
     event.currentTarget.style.backgroundColor = ACTIVE_BTN;
-    switch (event.currentTarget.innerText) {
+    stimulusSize = event.currentTarget.innerText;
+    switch (stimulusSize) {
         case "Small": ipc.send("small");
             break;
         case "Large": ipc.send("large");
             break;
     }
+    updateEventTable("Size", stimulusSize);
 }
 
 function visibilityBtnClick(event) {
@@ -304,7 +317,8 @@ function visibilityBtnClick(event) {
         btn.style.backgroundColor = INACTIVE_BTN;
     }
     event.currentTarget.style.backgroundColor = ACTIVE_BTN;
-    switch (event.currentTarget.innerText) {
+    const showStimulus = event.currentTarget.innerText;
+    switch (showStimulus) {
         case "Show Stimulus":
             ipc.send("show");
             showVisible();
@@ -314,6 +328,7 @@ function visibilityBtnClick(event) {
             showHidden();
             break;
     }
+    updateEventTable("Show-Manual", showStimulus);
 }
 
 function animationBtnClick(event) {
@@ -338,7 +353,8 @@ function positionBtnClick(event) {
     }
     event.currentTarget.style.backgroundColor = ACTIVE_BTN;
     console.log(event.currentTarget.innerText);
-    switch (event.currentTarget.innerText) {
+    stimulusPosition = event.currentTarget.innerText;
+    switch (stimulusPosition) {
         case "Left":
             ipc.send("left");
             break;
@@ -349,6 +365,7 @@ function positionBtnClick(event) {
             ipc.send("center");
             break;
     }
+    updateEventTable("Position", stimulusPosition);
 }
 
 function disconnectBtnClick(event) {

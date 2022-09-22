@@ -78,7 +78,7 @@ const Rat = (function () {
             }
         }
 
-        async function onMouseDown(e) {
+        /* async function onMouseDown(e) {
             e.preventDefault();
             currentResponse++;
 
@@ -88,12 +88,9 @@ const Rat = (function () {
 
             const targetHit = shape.inside({ x, y });
             const v = hidden ? "hidden" : "visible";
-            //        const relativeResponseTime = currentTrial > 0 ? now - relativeStartTime : 0;
-            //        const absoluteTrialTime = currentTrial > 0 ? relativeStartTime - ABSOLUTE_START_TIME : 0;
-            //        const resp = await fetch(`/tap?t=${currentTrial}&r=${currentResponse}&x=${x}&y=${y}&h=${targetHit}&at=${now - ABSOLUTE_START_TIME}&rt=${relativeResponseTime}&tt=${absoluteTrialTime}&sh=${stimulusType}&sz=${size}&p=${currentPosition}&f=${Shapes.Shape.brightness}&c=${color}&b=${backgroundBrightness}&v=${v}`);
             const resp = await fetch(`/tap?t=${currentTrial}&r=${currentResponse}&x=${x}&y=${y}&h=${targetHit}&sh=${stimulusType}&sz=${size}&p=${currentPosition}&f=${Shapes.Shape.brightness}&c=${color}&b=${backgroundBrightness}&v=${v}`);
             statusSpan.innerHTML = resp.statusText;
-        }
+        } */
 
         function animationLoop() {
             if (stopAnimation) {
@@ -279,14 +276,12 @@ const Rat = (function () {
         async function initialise() {
             source.addEventListener("open", () => {
                 statusSpan.innerHTML = "Connection to the server established";
-                //    open = true;
             });
 
             source.addEventListener("message", messageHandler);
             source.addEventListener("error", (e) => {
                 statusSpan.innerHTML = "<strong>There was an EventSource error!</strong> (check console for details)";
                 console.log("There was an EventSource error:", e);
-                //    open = false;
             });
             attachListeners();
 
@@ -308,26 +303,8 @@ const Rat = (function () {
 
             window.addEventListener("beforeunload", function () {
                 source.close();
-                //    open = false;
+                
             });
-            /* 
-                        console.log("Starting timer");
-                        experimentClock = setInterval(async function () {
-                            const now = Date.now();
-                            if (open) {
-                                fetch(`/time?at=${now - ABSOLUTE_START_TIME}&rt=${currentTrial > 0 ? now - relativeStartTime : 0}`)
-                                    .catch(e => {
-                                        window.clearInterval(experimentClock);
-                                        experimentClock = null;
-                                        statusSpan.innerHTML = e.message;
-                                        console.log("Timer killed");
-                                    });
-                            }
-                            else {
-                                clearInterval(experimentClock);
-                                experimentClock = null;
-                            }
-                        }, 1000); */
         }
 
         initialise();

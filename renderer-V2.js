@@ -68,10 +68,10 @@ let generalTimer, experimentTimer;
 let experimentStartTime;
 let eventCounter = 0;
 
-let stimulusColor;
-let stimulusShape;
-let stimulusSize;
-let stimulusPosition;
+let stimulusColor = "green";
+let stimulusShape = "circle";
+let stimulusSize = "small";
+let stimulusPosition = "left";
 
 function updateEventTable(eventName, param1 = "&#8212;", param2 = "&#8212;", param3 = "&#8212;", param4 = "&#8212;") {
     const timeStamp = (Date.now() - experimentStartTime) / 1000.0;
@@ -472,6 +472,7 @@ async function rewardBtnClick(event) {
             rewardBtn.disabled = true;
             currentTrial = 0;
             waitingForBreak = false;
+            updateEventTable("Stimulus", stimulusShape, stimulusColor, stimulusPosition, stimulusSize);
             doPhase2AutomaticTrial();
             break;
         case "mode-2-manual":

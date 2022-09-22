@@ -246,7 +246,9 @@ ipcMain.handle("fName", async () => {
         if(outputStream){
             outputStream.end();
         }
-        outputStream = fs.createWriteStream(fName);
+        outputStream = fs.createWriteStream(fName, {
+            flags: "a"
+        });
         return path.basename(fName);
     }
     else{

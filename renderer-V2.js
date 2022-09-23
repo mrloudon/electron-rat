@@ -240,7 +240,7 @@ ipc.on("udp", (event, data) => {
         feedbackAlert.innerHTML = "Manual<br>Delay 60s";
         updateEventTable("Delay", "Phase 2", "Manual", Math.round(PHASE_2_REWARD_TIME / 1000.0));
         generalTimer = setTimeout(() => {
-            updateEventTable("End", "Phase 2", "Manual");
+            updateEventTable("End", "Phase 2", "Manual", "Success");
             doPhase2ManualTrial();
         }, debugCB.checked ? DEBUG_REWARD_TIME : PHASE_2_REWARD_TIME);
     }
@@ -447,8 +447,10 @@ function doPhase2ManualTrial() {
         showHidden();
         updateEventTable("Hide", "Phase 2", "Manual");
         feedbackAlert.innerHTML = "Manual Time Out";
-        generalTimer = setTimeout(doPhase2ManualTrial,
-            debugCB.checked ? DEBUG_PHASE_2_MANUAL_TIME : PHASE_2_MANUAL_TIME);
+        generalTimer = setTimeout(() => {
+            updateEventTable("End", "Phase 2", "Manual", "Fail");
+            doPhase2ManualTrial();
+        }, debugCB.checked ? DEBUG_PHASE_2_MANUAL_TIME : PHASE_2_MANUAL_TIME);
     }, debugCB.checked ? DEBUG_PHASE_2_TIMEOUT_TIME : PHASE_2_TIMEOUT_TIME);
 }
 

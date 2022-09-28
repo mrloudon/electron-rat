@@ -24,6 +24,11 @@
             <label for="mode-radio-3">Phase 3</label>
             <input type="checkbox" id="debug-checkbox">
             <label for="debug-checkbox">Debug</label>
+            <br>
+            <input type="radio" name="mode-radios" value="1" id="mode-radio-4">
+            <label for="mode-radio-4">Monotony</label>
+            <input type="radio" name="mode-radios" value="1" id="mode-radio-5">
+            <label for="mode-radio-5">Variation</label>
         </div>
         <div class="col-feedback">
             &nbsp;
@@ -91,7 +96,7 @@
                 <button type="button" class="radio-btn animation-btn">Start</button>
                 <button type="button" class="radio-btn animation-btn default-btn">Stop</button>
             </fieldset>
-            <fieldset style="padding-top: 15px;" class="feedback-label">
+            <fieldset style="padding-top: 15px; display: none;" class="feedback-label">
                 <legend>Automatic Controls</legend>
                 <label for="isi-ip">Inter stimulus interval:</label>
                 <input type="number" id="isi-ip" name="isi-ip" min="1" max="100" value="30">

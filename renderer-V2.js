@@ -21,9 +21,14 @@ const PHASE_1_N_TRIALS = 30;
 const PHASE_2_REWARD_TIME = 60000;
 const PHASE_2_TIMEOUT_TIME = 15000;
 const PHASE_2_MANUAL_TIME = 20000;
+const PHASE_3_REWARD_TIME = 60000;
+const PHASE_3_TIMEOUT_TIME = 15000;
+const PHASE_3_MANUAL_TIME = 20000;
 const DEBUG_REWARD_TIME = 1000;
 const DEBUG_PHASE_2_TIMEOUT_TIME = 5000;
 const DEBUG_PHASE_2_MANUAL_TIME = 2000;
+const DEBUG_PHASE_3_TIMEOUT_TIME = 5000;
+const DEBUG_PHASE_3_MANUAL_TIME = 2000;
 const REWARD_BTN_DEAD_TIME = 5000;
 
 const hostSpans = document.querySelectorAll(".host-span");
@@ -45,8 +50,8 @@ const stimulusRange = document.getElementById("stimulusRange");
 const stimulusRangeLabel = document.getElementById("stimulusRangeLabel");
 const backgroundRange = document.getElementById("backgroundRange");
 const backgroundRangeLabel = document.getElementById("backgroundRangeLabel");
-const isiInput = document.getElementById("isi-ip");
-const autoCB = document.getElementById("auto-cb");
+/* const isiInput = document.getElementById("isi-ip");
+const autoCB = document.getElementById("auto-cb"); */
 const visibilityAlert = document.querySelector(".visibility-alert");
 const feedbackAlert = document.querySelector(".col-feedback");
 const modeRBs = document.querySelectorAll("input[name='mode-radios']");
@@ -181,16 +186,13 @@ ipc.on("tap", async (event, data) => {
                 feedbackAlert.innerHTML = "Waiting for IR break";
                 break;
             case "mode-3":
+                clearTimeout(generalTimer);
                 ipc.send("hide");
                 showHidden();
+                updateEventTable("Reward", "Phase 3", currentTrial);
                 await fetch(`${ROUTER_URL}/b`);
-                if (autoCB.checked) {
-                    console.log("Starting ISI timer");
-                    setTimeout(() => {
-                        ipc.send("show");
-                        showVisible();
-                    }, Number(isiInput.value) * 1000);
-                }
+                waitingForBreak = true;
+                feedbackAlert.innerHTML = "Waiting for IR break";
                 break;
         }
         console.log("Correct tap");
@@ -245,6 +247,15 @@ ipc.on("udp", (event, data) => {
         }, debugCB.checked ? DEBUG_REWARD_TIME : PHASE_2_REWARD_TIME);
     }
 
+    function handleMode3IRBreak(){
+        feedbackAlert.innerHTML = "Delay 60s";
+        updateEventTable("Delay", "Phase 3",  Math.round(PHASE_3_REWARD_TIME / 1000.0));
+        generalTimer = setTimeout(() => {
+            updateEventTable("End", "Phase 3", "Success");
+            doPhase3Trial();
+        }, debugCB.checked ? DEBUG_REWARD_TIME : PHASE_3_REWARD_TIME);
+    }
+
     if (!waitingForBreak) {
         return;
     }
@@ -260,6 +271,9 @@ ipc.on("udp", (event, data) => {
             break;
         case "mode-2-manual":
             handleMode2ManualIRBreak();
+            break;
+        case "mode-3":
+            handleMode3IRBreak();
             break;
     }
 
@@ -454,13 +468,32 @@ function doPhase2ManualTrial() {
     }, debugCB.checked ? DEBUG_PHASE_2_TIMEOUT_TIME : PHASE_2_TIMEOUT_TIME);
 }
 
+function doPhase3Trial() {
+    console.log("Phase 3 trial");
+    currentTrial++;
+    ipc.send("show");
+    showVisible();
+    updateEventTable("Show", "Phase 3", currentTrial);
+    feedbackAlert.innerHTML = `Trial ${currentTrial}`;
+    generalTimer = setTimeout(async function hideStimulusNoReward() {
+        ipc.send("hide");
+        showHidden();
+        updateEventTable("Hide", "Phase 3");
+        feedbackAlert.innerHTML = "Time Out";
+        generalTimer = setTimeout(() => {
+            updateEventTable("End", "Phase 3", "Fail");
+            doPhase3Trial();
+        }, debugCB.checked ? DEBUG_PHASE_3_MANUAL_TIME : PHASE_3_MANUAL_TIME);
+    }, debugCB.checked ? DEBUG_PHASE_3_TIMEOUT_TIME : PHASE_3_TIMEOUT_TIME);
+}
+
 async function rewardBtnClick(event) {
     const target = event.currentTarget;
     switch (mode) {
         case "mode-1":
             experimentStartTime = Date.now();
             experimentTimer = setInterval(experimentTimerTimeout, CLOCK_UPDATE);
-            rewardBtn.disabled = true;
+            target.disabled = true;
             currentTrial = 1;
             feedbackAlert.innerHTML = `Trial ${currentTrial}<br>Waiting for IR break`;
             updateEventTable("Reward", "Phase 1", currentTrial);
@@ -471,7 +504,7 @@ async function rewardBtnClick(event) {
         case "mode-2-automatic":
             experimentStartTime = Date.now();
             experimentTimer = setInterval(experimentTimerTimeout, CLOCK_UPDATE);
-            rewardBtn.disabled = true;
+            target.disabled = true;
             currentTrial = 0;
             waitingForBreak = false;
             updateEventTable("Stimulus", stimulusShape, stimulusColor, stimulusPosition, stimulusSize);
@@ -490,9 +523,12 @@ async function rewardBtnClick(event) {
             break;
         case "mode-3":
             target.disabled = true;
-            updateEventTable("Reward", "Phase 3", currentTrial);
-            await fetch(`${ROUTER_URL}/b`);
-            setTimeout(() => target.disabled = false, REWARD_BTN_DEAD_TIME);
+            currentTrial = 0;
+            experimentStartTime = Date.now();
+            experimentTimer = setInterval(experimentTimerTimeout, CLOCK_UPDATE);
+            waitingForBreak = false;
+            updateEventTable("Stimulus", stimulusShape, stimulusColor, stimulusPosition, stimulusSize);
+            doPhase3Trial();
             break;
     }
 }
@@ -533,7 +569,7 @@ function mode2() {
 
 function mode3() {
     mode = "mode-3";
-    rewardBtn.innerHTML = "Reward";
+    rewardBtn.innerHTML = "Start";
     document.getElementById("main-page").querySelectorAll("button").forEach(item => item.disabled = false);
     stimulusRange.disabled = false;
     backgroundRange.disabled = false;

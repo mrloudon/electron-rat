@@ -22,7 +22,7 @@ const Rat = (function () {
     const INITIAL_STIMULUS_BRIGHTNESS = 127;
     const INITIAL_BACKGROUND_BRIGHTNESS = 127;
 
-    const ACCEPT_TOUCHES_DEADTIME = 2000;
+    const ACCEPT_TOUCHES_DEADTIME = 200;
 
     function run() {
         const source = new EventSource("/events");

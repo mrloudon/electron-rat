@@ -44,6 +44,7 @@ const animationBtns = document.querySelectorAll(".animation-btn");
 const positionBtns = document.querySelectorAll(".position-btn");
 const allRadioBtns = document.querySelectorAll(".radio-btn");
 const runBtn = document.getElementById("run-btn");
+const manualRewardBtn = document.getElementById("manual-reward-btn");
 const fileBtn = document.getElementById("file-btn");
 const disconnectBtn = document.getElementById("disconnect-btn");
 const stimulusRange = document.getElementById("stimulusRange");
@@ -247,9 +248,9 @@ ipc.on("udp", (event, data) => {
         }, debugCB.checked ? DEBUG_REWARD_TIME : PHASE_2_REWARD_TIME);
     }
 
-    function handleMode3IRBreak(){
+    function handleMode3IRBreak() {
         feedbackAlert.innerHTML = "Delay 60s";
-        updateEventTable("Delay", "Phase 3",  Math.round(PHASE_3_REWARD_TIME / 1000.0));
+        updateEventTable("Delay", "Phase 3", Math.round(PHASE_3_REWARD_TIME / 1000.0));
         generalTimer = setTimeout(() => {
             updateEventTable("End", "Phase 3", "Success");
             doPhase3Trial();
@@ -399,6 +400,14 @@ function fileBtnClick() {
         });
 }
 
+async function manualRewardBtnClick(event) {
+    const target = event.currentTarget;
+    target.disabled = true;
+    updateEventTable("Reward", "Manual");
+    await fetch(`${ROUTER_URL}/b`);
+    setTimeout(() => target.disabled = false, REWARD_BTN_DEAD_TIME);
+}
+
 function attachListeners() {
     for (const btn of shapeBtns) {
         btn.addEventListener("click", shapeBtnClick);
@@ -419,6 +428,7 @@ function attachListeners() {
         btn.addEventListener("click", positionBtnClick);
     }
     runBtn.addEventListener("click", runBtnClick);
+    manualRewardBtn.addEventListener("click", manualRewardBtnClick);
     fileBtn.addEventListener("click", fileBtnClick);
     disconnectBtn.addEventListener("click", disconnectBtnClick);
     stimulusRange.oninput = function () {
@@ -558,10 +568,10 @@ function mode123DisableButtons() {
     fileBtn.disabled = false;
 }
 
-function modeManualEnableButtons(){
+function modeManualEnableButtons() {
     document.getElementById("main-page").querySelectorAll("button").forEach(item => item.disabled = false);
     stimulusRange.disabled = false;
-    backgroundRange.disabled = false;document.getElementById("main-page").querySelectorAll("button").forEach(item => item.disabled = false);
+    backgroundRange.disabled = false; document.getElementById("main-page").querySelectorAll("button").forEach(item => item.disabled = false);
     stimulusRange.disabled = false;
     backgroundRange.disabled = false;
     runBtn.disabled = true;
@@ -585,7 +595,7 @@ function mode3() {
     mode123DisableButtons();
 }
 
-function modeManual(){
+function modeManual() {
     mode = "manual";
     modeManualEnableButtons();
     experimentStartTime = Date.now();

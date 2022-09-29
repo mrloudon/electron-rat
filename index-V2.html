@@ -20,15 +20,17 @@
             <label for="mode-radio-1">Phase 1</label>
             <input type="radio" name="mode-radios" value="2" id="mode-radio-2">
             <label for="mode-radio-2">Phase 2</label>
-            <input type="radio" name="mode-radios" value="3" id="mode-radio-3" checked>
+            <input type="radio" name="mode-radios" value="3" id="mode-radio-3">
             <label for="mode-radio-3">Phase 3</label>
             <input type="checkbox" id="debug-checkbox">
             <label for="debug-checkbox">Debug</label>
             <br>
-            <input type="radio" name="mode-radios" value="1" id="mode-radio-4">
+            <input type="radio" name="mode-radios" value="4" id="mode-radio-4" disabled>
             <label for="mode-radio-4">Monotony</label>
-            <input type="radio" name="mode-radios" value="1" id="mode-radio-5">
+            <input type="radio" name="mode-radios" value="5" id="mode-radio-5" disabled>
             <label for="mode-radio-5">Variation</label>
+            <input type="radio" name="mode-radios" value="6" id="mode-radio-6" checked>
+            <label for="mode-radio-6">Manual</label>
         </div>
         <div class="col-feedback">
             &nbsp;
@@ -50,12 +52,11 @@
                 </div>
             </fieldset>
             <fieldset>
-                <legend style="display: none;">
-                    Relative Time
+                <legend>
+                    Run
                 </legend>
-                <div class="center" style="display: none;">
-                    <span class="time-span" id="relative-hms-span">00:00:00</span><br>
-                    <small id="relative-s-span">0</small>
+                <div class="center">
+                    <button type="button" class="ordinary-btn" id="run-btn">&nbsp;Start&nbsp;</button>
                 </div>
             </fieldset>
             <fieldset class="feedback-label">
@@ -108,7 +109,7 @@
                 <legend>Manual Controls</legend>
                 <button type="button" class="radio-btn visibility-btn">Show Stimulus</button>
                 <button type="button" class="radio-btn visibility-btn  default-btn">Hide Stimulus</button>
-                <button type="button" id="reward-btn" class="urgent-btn">Reward</button>
+                <button type="button" id="manual-reward-btn" class="urgent-btn">Reward</button>
             </fieldset>
         </div>
         <div class="grid-2-container">

@@ -43,7 +43,7 @@ const visibilityBtns = document.querySelectorAll(".visibility-btn");
 const animationBtns = document.querySelectorAll(".animation-btn");
 const positionBtns = document.querySelectorAll(".position-btn");
 const allRadioBtns = document.querySelectorAll(".radio-btn");
-const rewardBtn = document.getElementById("reward-btn");
+const runBtn = document.getElementById("run-btn");
 const fileBtn = document.getElementById("file-btn");
 const disconnectBtn = document.getElementById("disconnect-btn");
 const stimulusRange = document.getElementById("stimulusRange");
@@ -65,7 +65,7 @@ const param2TD = document.getElementById("param-2-td");
 const param3TD = document.getElementById("param-3-td");
 const param4TD = document.getElementById("param-4-td");
 
-let mode = "mode-3";
+let mode;
 let currentTrial = 0;
 let waitingForBreak = false;
 let generalTimer, experimentTimer;
@@ -172,8 +172,8 @@ ipc.on("tap", async (event, data) => {
                 updateEventTable("Reward", "Phase 2", currentTrial, "Automatic");
                 await fetch(`${ROUTER_URL}/b`);
                 waitingForBreak = true;
-                rewardBtn.innerHTML = "Reward";
-                rewardBtn.disabled = false;
+                runBtn.innerHTML = "Reward";
+                runBtn.disabled = false;
                 feedbackAlert.innerHTML = "Success!<br>Waiting for IR break";
                 break;
             case "mode-2-manual":
@@ -213,7 +213,7 @@ ipc.on("udp", (event, data) => {
         feedbackAlert.innerHTML = `Trial ${currentTrial}`;
 
         if (currentTrial === nTrials) {
-            rewardBtn.disabled = false;
+            runBtn.disabled = false;
             feedbackAlert.innerHTML = "Phase 1<br> completed";
             clearTimeout(experimentTimer);
         }
@@ -418,7 +418,7 @@ function attachListeners() {
     for (const btn of positionBtns) {
         btn.addEventListener("click", positionBtnClick);
     }
-    rewardBtn.addEventListener("click", rewardBtnClick);
+    runBtn.addEventListener("click", runBtnClick);
     fileBtn.addEventListener("click", fileBtnClick);
     disconnectBtn.addEventListener("click", disconnectBtnClick);
     stimulusRange.oninput = function () {
@@ -487,13 +487,14 @@ function doPhase3Trial() {
     }, debugCB.checked ? DEBUG_PHASE_3_TIMEOUT_TIME : PHASE_3_TIMEOUT_TIME);
 }
 
-async function rewardBtnClick(event) {
+async function runBtnClick(event) {
     const target = event.currentTarget;
     switch (mode) {
         case "mode-1":
             experimentStartTime = Date.now();
             experimentTimer = setInterval(experimentTimerTimeout, CLOCK_UPDATE);
             target.disabled = true;
+            updateEventTable("Stimulus", stimulusShape, stimulusColor, stimulusPosition, stimulusSize);
             currentTrial = 1;
             feedbackAlert.innerHTML = `Trial ${currentTrial}<br>Waiting for IR break`;
             updateEventTable("Reward", "Phase 1", currentTrial);
@@ -544,35 +545,54 @@ function modeClick(evt) {
             break;
         case "3": mode3();
             break;
+        case "6": modeManual();
+            break;
     }
 }
 
-function mode12DisableButtons() {
+function mode123DisableButtons() {
     document.getElementById("main-page").querySelectorAll("button").forEach(item => item.disabled = true);
     stimulusRange.disabled = true;
     backgroundRange.disabled = true;
-    rewardBtn.disabled = false;
+    runBtn.disabled = false;
     fileBtn.disabled = false;
+}
+
+function modeManualEnableButtons(){
+    document.getElementById("main-page").querySelectorAll("button").forEach(item => item.disabled = false);
+    stimulusRange.disabled = false;
+    backgroundRange.disabled = false;document.getElementById("main-page").querySelectorAll("button").forEach(item => item.disabled = false);
+    stimulusRange.disabled = false;
+    backgroundRange.disabled = false;
+    runBtn.disabled = true;
 }
 
 function mode1() {
     mode = "mode-1";
-    rewardBtn.innerHTML = "Start";
-    mode12DisableButtons();
+    runBtn.innerHTML = "Start";
+    mode123DisableButtons();
 }
 
 function mode2() {
     mode = "mode-2-automatic";
-    rewardBtn.innerHTML = "Start";
-    mode12DisableButtons();
+    runBtn.innerHTML = "Start";
+    mode123DisableButtons();
 }
 
 function mode3() {
     mode = "mode-3";
-    rewardBtn.innerHTML = "Start";
-    document.getElementById("main-page").querySelectorAll("button").forEach(item => item.disabled = false);
-    stimulusRange.disabled = false;
-    backgroundRange.disabled = false;
+    runBtn.innerHTML = "Start";
+    mode123DisableButtons();
+}
+
+function modeManual(){
+    mode = "manual";
+    modeManualEnableButtons();
+    experimentStartTime = Date.now();
+    experimentTimer = setInterval(experimentTimerTimeout, CLOCK_UPDATE);
+    updateEventTable("Stimulus", stimulusShape, stimulusColor, stimulusPosition, stimulusSize);
+    updateEventTable("Manual");
+    feedbackAlert.innerHTML = "Manual mode";
 }
 
 function resetUI() {
@@ -603,7 +623,7 @@ function initialise() {
             hostSpans.forEach(item => item.innerHTML = result);
         });
     modeRBs.forEach(item => item.addEventListener("click", modeClick));
-    experimentStartTime = Date.now();
+    modeManual();
 }
 
 initialise();

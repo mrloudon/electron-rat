@@ -24,11 +24,16 @@ const PHASE_2_MANUAL_TIME = 20000;
 const PHASE_3_REWARD_TIME = 60000;
 const PHASE_3_TIMEOUT_TIME = 15000;
 const PHASE_3_MANUAL_TIME = 20000;
+const MONOTONY_TIMEOUT_TIME = 15000;
+const MONOTONY_MANUAL_TIME = 20000;
+const MONOTONY_REWARD_TIME = 60000;
 const DEBUG_REWARD_TIME = 1000;
 const DEBUG_PHASE_2_TIMEOUT_TIME = 5000;
 const DEBUG_PHASE_2_MANUAL_TIME = 2000;
 const DEBUG_PHASE_3_TIMEOUT_TIME = 5000;
 const DEBUG_PHASE_3_MANUAL_TIME = 2000;
+const DEBUG_MONOTONY_TIMEOUT_TIME = 5000;
+const DEBUG_MONOTONY_MANUAL_TIME = 2000;
 const REWARD_BTN_DEAD_TIME = 5000;
 
 const hostSpans = document.querySelectorAll(".host-span");
@@ -45,6 +50,7 @@ const positionBtns = document.querySelectorAll(".position-btn");
 const allRadioBtns = document.querySelectorAll(".radio-btn");
 const runBtn = document.getElementById("run-btn");
 const manualRewardBtn = document.getElementById("manual-reward-btn");
+const manualIRBtn = document.getElementById("manual-ir-btn");
 const fileBtn = document.getElementById("file-btn");
 const disconnectBtn = document.getElementById("disconnect-btn");
 const stimulusRange = document.getElementById("stimulusRange");
@@ -65,6 +71,8 @@ const param1TD = document.getElementById("param-1-td");
 const param2TD = document.getElementById("param-2-td");
 const param3TD = document.getElementById("param-3-td");
 const param4TD = document.getElementById("param-4-td");
+
+const USE_TABLET = false;
 
 let mode;
 let currentTrial = 0;
@@ -171,7 +179,9 @@ ipc.on("tap", async (event, data) => {
                 ipc.send("hide");
                 showHidden();
                 updateEventTable("Reward", "Phase 2", currentTrial, "Automatic");
-                await fetch(`${ROUTER_URL}/b`);
+                if (USE_TABLET) {
+                    await fetch(`${ROUTER_URL}/b`);
+                }
                 waitingForBreak = true;
                 runBtn.innerHTML = "Reward";
                 runBtn.disabled = false;
@@ -182,7 +192,9 @@ ipc.on("tap", async (event, data) => {
                 ipc.send("hide");
                 showHidden();
                 updateEventTable("Reward", "Phase 2", currentTrial, "Manual");
-                await fetch(`${ROUTER_URL}/b`);
+                if (USE_TABLET) {
+                    await fetch(`${ROUTER_URL}/b`);
+                }
                 waitingForBreak = true;
                 feedbackAlert.innerHTML = "Waiting for IR break";
                 break;
@@ -191,18 +203,31 @@ ipc.on("tap", async (event, data) => {
                 ipc.send("hide");
                 showHidden();
                 updateEventTable("Reward", "Phase 3", currentTrial);
-                await fetch(`${ROUTER_URL}/b`);
+                if (USE_TABLET) {
+                    await fetch(`${ROUTER_URL}/b`);
+                }
                 waitingForBreak = true;
                 feedbackAlert.innerHTML = "Waiting for IR break";
+                break;
+            case "mode-monotony-initial":
+                clearTimeout(generalTimer);
+                mode = "mode-monotony-main";
+                ipc.send("hide");
+                showHidden();
+                setStimulus1();
+                updateEventTable("Reward", "Monotony", currentTrial, "Initial");
+                if (USE_TABLET) {
+                    await fetch(`${ROUTER_URL}/b`);
+                }
+                waitingForBreak = true;
+                feedbackAlert.innerHTML = "Success!<br>Waiting for IR break";
                 break;
         }
         console.log("Correct tap");
     }
 });
 
-//IR Break detected
-ipc.on("udp", (event, data) => {
-
+function handleIRBreak(event, data) {
     updateEventTable("IR Break");
     console.log(`UDP: ${data}`);
 
@@ -221,7 +246,9 @@ ipc.on("udp", (event, data) => {
         else {
             generalTimer = setTimeout(async () => {
                 updateEventTable("Reward", "Phase 1", currentTrial);
-                await fetch(`${ROUTER_URL}/b`);
+                if (USE_TABLET) {
+                    await fetch(`${ROUTER_URL}/b`);
+                }
                 waitingForBreak = true;
                 currentTrial++;
                 feedbackAlert.innerHTML = `Trial ${currentTrial}`;
@@ -257,6 +284,15 @@ ipc.on("udp", (event, data) => {
         }, debugCB.checked ? DEBUG_REWARD_TIME : PHASE_3_REWARD_TIME);
     }
 
+    function handleModeMonotonyMainBreak() {
+        feedbackAlert.innerHTML = "Delay 60s";
+        updateEventTable("Delay", "Monotony", Math.round(MONOTONY_REWARD_TIME / 1000.0));
+        generalTimer = setTimeout(() => {
+            updateEventTable("End", "Monotony", "Success");
+            doMonotonyMainTrial();
+        }, debugCB.checked ? DEBUG_REWARD_TIME : MONOTONY_REWARD_TIME);
+    }
+
     if (!waitingForBreak) {
         return;
     }
@@ -276,9 +312,107 @@ ipc.on("udp", (event, data) => {
         case "mode-3":
             handleMode3IRBreak();
             break;
+        case "mode-monotony-main":
+            handleModeMonotonyMainBreak();
+            break;
     }
 
-});
+}
+
+ipc.on("udp", handleIRBreak);
+
+/* async function setStimulus({ shape, size, position, color }) {
+
+    function sleep(ms) {
+        return new Promise(function (resolve) {
+            setTimeout(resolve, ms);
+        });
+    }
+
+    console.log("Set stimuls");
+
+    await sleep(1500);
+    ipc.send(shape);
+    for (const btn of shapeBtns) {
+        if (btn.innerHTML.toLowerCase() === shape) {
+            btn.style.backgroundColor = ACTIVE_BTN;
+        }
+        else {
+            btn.style.backgroundColor = INACTIVE_BTN;
+        }
+    }
+    
+    await sleep(1500);
+    ipc.send(color);
+    for (const btn of colorBtns) {
+        if (btn.innerHTML.toLowerCase() === color) {
+            btn.style.backgroundColor = ACTIVE_BTN;
+        }
+        else {
+            btn.style.backgroundColor = INACTIVE_BTN;
+        }
+    }
+
+    await sleep(1500);
+    ipc.send(size);
+    for (const btn of sizeBtns) {
+        if (btn.innerHTML.toLowerCase() === size) {
+            btn.style.backgroundColor = ACTIVE_BTN;
+        }
+        else {
+            btn.style.backgroundColor = INACTIVE_BTN;
+        }
+    }
+   
+    await sleep(1500);
+    ipc.send(position);
+    for (const btn of positionBtns) {
+        if (btn.innerHTML.toLowerCase() === position) {
+            btn.style.backgroundColor = ACTIVE_BTN;
+        }
+        else {
+            btn.style.backgroundColor = INACTIVE_BTN;
+        }
+    }
+    
+} */
+
+function setStimulus1(){
+    for (const btn of shapeBtns) {
+        if (btn.innerHTML.toLowerCase() === "circle") {
+            btn.style.backgroundColor = ACTIVE_BTN;
+        }
+        else {
+            btn.style.backgroundColor = INACTIVE_BTN;
+        }
+    }
+    for (const btn of colorBtns) {
+        if (btn.innerHTML.toLowerCase() === "grey") {
+            btn.style.backgroundColor = ACTIVE_BTN;
+        }
+        else {
+            btn.style.backgroundColor = INACTIVE_BTN;
+        }
+    }
+    for (const btn of sizeBtns) {
+        if (btn.innerHTML.toLowerCase() === "large") {
+            btn.style.backgroundColor = ACTIVE_BTN;
+        }
+        else {
+            btn.style.backgroundColor = INACTIVE_BTN;
+        }
+    }
+    for (const btn of positionBtns) {
+        if (btn.innerHTML.toLowerCase() === "center") {
+            btn.style.backgroundColor = ACTIVE_BTN;
+        }
+        else {
+            btn.style.backgroundColor = INACTIVE_BTN;
+        }
+    }
+
+    ipc.send("stim-1");
+}
 
 function shapeBtnClick(event) {
     for (const btn of shapeBtns) {
@@ -376,7 +510,7 @@ function positionBtnClick(event) {
         case "Right":
             ipc.send("right");
             break;
-        case "Centre":
+        case "Center":
             ipc.send("center");
             break;
     }
@@ -404,7 +538,9 @@ async function manualRewardBtnClick(event) {
     const target = event.currentTarget;
     target.disabled = true;
     updateEventTable("Reward", "Manual");
-    await fetch(`${ROUTER_URL}/b`);
+    if (USE_TABLET) {
+        await fetch(`${ROUTER_URL}/b`);
+    }
     setTimeout(() => target.disabled = false, REWARD_BTN_DEAD_TIME);
 }
 
@@ -429,6 +565,12 @@ function attachListeners() {
     }
     runBtn.addEventListener("click", runBtnClick);
     manualRewardBtn.addEventListener("click", manualRewardBtnClick);
+    manualIRBtn.addEventListener("click", evt => {
+        const btn = evt.currentTarget;
+        btn.disabled = true;
+        setTimeout(() => btn.disabled = false, REWARD_BTN_DEAD_TIME);
+        handleIRBreak(null, "Manual");
+    });
     fileBtn.addEventListener("click", fileBtnClick);
     disconnectBtn.addEventListener("click", disconnectBtnClick);
     stimulusRange.oninput = function () {
@@ -497,6 +639,44 @@ function doPhase3Trial() {
     }, debugCB.checked ? DEBUG_PHASE_3_TIMEOUT_TIME : PHASE_3_TIMEOUT_TIME);
 }
 
+function doMonotonyInitialTrial() {
+    console.log("Monotony initial trial");
+    currentTrial++;
+    ipc.send("show");
+    showVisible();
+    updateEventTable("Show", "Monotony", currentTrial);
+    feedbackAlert.innerHTML = `Trial ${currentTrial}`;
+    generalTimer = setTimeout(async function hideStimulusNoReward() {
+        ipc.send("hide");
+        showHidden();
+        updateEventTable("Hide", "Monotony", "Initial");
+        feedbackAlert.innerHTML = "Time Out";
+        generalTimer = setTimeout(() => {
+            updateEventTable("End", "Monotony", "Fail", "Initial");
+            doMonotonyInitialTrial();
+        }, debugCB.checked ? DEBUG_MONOTONY_MANUAL_TIME : MONOTONY_MANUAL_TIME);
+    }, debugCB.checked ? DEBUG_MONOTONY_TIMEOUT_TIME : MONOTONY_TIMEOUT_TIME);
+}
+
+function doMonotonyMainTrial() {
+    console.log("Monotony main trial");
+    currentTrial++;
+    ipc.send("show");
+    showVisible();
+    updateEventTable("Show", "Monotony", currentTrial);
+    feedbackAlert.innerHTML = `Trial ${currentTrial}`;
+    generalTimer = setTimeout(async function hideStimulusNoReward() {
+        ipc.send("hide");
+        showHidden();
+        updateEventTable("Hide", "Monotony", "Main");
+        feedbackAlert.innerHTML = "Time Out";
+        generalTimer = setTimeout(() => {
+            updateEventTable("End", "Monotony", "Fail", "Main");
+            doMonotonyInitialTrial();
+        }, debugCB.checked ? DEBUG_MONOTONY_MANUAL_TIME : MONOTONY_MANUAL_TIME);
+    }, debugCB.checked ? DEBUG_MONOTONY_TIMEOUT_TIME : MONOTONY_TIMEOUT_TIME);
+}
+
 async function runBtnClick(event) {
     const target = event.currentTarget;
     switch (mode) {
@@ -508,8 +688,9 @@ async function runBtnClick(event) {
             currentTrial = 1;
             feedbackAlert.innerHTML = `Trial ${currentTrial}<br>Waiting for IR break`;
             updateEventTable("Reward", "Phase 1", currentTrial);
-            await fetch(`${ROUTER_URL}/b`);
-
+            if (USE_TABLET) {
+                await fetch(`${ROUTER_URL}/b`);
+            }
             waitingForBreak = true;
             break;
         case "mode-2-automatic":
@@ -527,7 +708,9 @@ async function runBtnClick(event) {
             ipc.send("hide");
             showHidden();
             updateEventTable("Reward", "Phase 2", currentTrial, "Manual");
-            await fetch(`${ROUTER_URL}/b`);
+            if (USE_TABLET) {
+                await fetch(`${ROUTER_URL}/b`);
+            }
             waitingForBreak = true;
             setTimeout(() => target.disabled = false, REWARD_BTN_DEAD_TIME);
             feedbackAlert.innerHTML = "Waiting for IR break";
@@ -540,6 +723,15 @@ async function runBtnClick(event) {
             waitingForBreak = false;
             updateEventTable("Stimulus", stimulusShape, stimulusColor, stimulusPosition, stimulusSize);
             doPhase3Trial();
+            break;
+        case "mode-monotony-initial":
+            target.disabled = true;
+            currentTrial = 0;
+            experimentStartTime = Date.now();
+            experimentTimer = setInterval(experimentTimerTimeout, CLOCK_UPDATE);
+            waitingForBreak = false;
+            updateEventTable("Stimulus", stimulusShape, stimulusColor, stimulusPosition, stimulusSize);
+            doMonotonyInitialTrial();
             break;
     }
 }
@@ -555,6 +747,8 @@ function modeClick(evt) {
             break;
         case "3": mode3();
             break;
+        case "4": modeMonotony();
+            break;
         case "6": modeManual();
             break;
     }
@@ -566,6 +760,7 @@ function mode123DisableButtons() {
     backgroundRange.disabled = true;
     runBtn.disabled = false;
     fileBtn.disabled = false;
+    manualIRBtn.disabled = false;
 }
 
 function modeManualEnableButtons() {
@@ -591,6 +786,12 @@ function mode2() {
 
 function mode3() {
     mode = "mode-3";
+    runBtn.innerHTML = "Start";
+    mode123DisableButtons();
+}
+
+function modeMonotony() {
+    mode = "mode-monotony-initial";
     runBtn.innerHTML = "Start";
     mode123DisableButtons();
 }

@@ -24,6 +24,8 @@ const Rat = (function () {
 
     const ACCEPT_TOUCHES_DEADTIME = 200;
 
+    const USE_TABLET = false;
+
     function run() {
         const source = new EventSource("/events");
         const statusSpan = document.getElementById("status-span");
@@ -78,7 +80,7 @@ const Rat = (function () {
             }
         }
 
-        /* async function onMouseDown(e) {
+        async function onMouseDown(e) {
             e.preventDefault();
             currentResponse++;
 
@@ -90,7 +92,7 @@ const Rat = (function () {
             const v = hidden ? "hidden" : "visible";
             const resp = await fetch(`/tap?t=${currentTrial}&r=${currentResponse}&x=${x}&y=${y}&h=${targetHit}&sh=${stimulusType}&sz=${size}&p=${currentPosition}&f=${Shapes.Shape.brightness}&c=${color}&b=${backgroundBrightness}&v=${v}`);
             statusSpan.innerHTML = resp.statusText;
-        } */
+        }
 
         function animationLoop() {
             if (stopAnimation) {
@@ -131,8 +133,12 @@ const Rat = (function () {
         }
 
         function attachListeners() {
-            //canvas.addEventListener("mousedown", onMouseDown);
-            canvas.addEventListener("touchstart", onTouchStart);
+            if(USE_TABLET){
+                canvas.addEventListener("touchstart", onTouchStart);
+            }
+            else{
+                canvas.addEventListener("mousedown", onMouseDown);
+            }
         }
 
         function messageHandler(message) {
@@ -145,6 +151,7 @@ const Rat = (function () {
                 console.log(message);
                 return;
             }
+            console.log("Command:", data.command);
             switch (data.command) {
                 case "close":
                     console.log("Closing!");
@@ -166,6 +173,7 @@ const Rat = (function () {
                     break;
                 case "show":
                     statusSpan.innerHTML = "Show stimulus";
+                    console.log("shape:", shape);
                     shape && shape.draw();
                     hidden = false;
                     // relativeStartTime = Date.now();
@@ -270,6 +278,36 @@ const Rat = (function () {
                 case "reward":
                     statusSpan.innerHTML = "Reward";
                     break;
+                case "stim-1":
+                    // Clear the current stimulus
+                    shape.clear();
+
+                    // Select circle
+                    selectShape("circle");
+                    
+                    // Center it
+                    currentPosition = "Centre";
+                    [Shapes.Circle, Shapes.Star, Shapes.Block].forEach(elem => elem.setPosition({ x: CENTER_X, y: POSITION_Y }));
+                    animationPosition.x = CENTER_X;
+                    
+                    // Select large
+                    size = "large";
+                    Shapes.Star.setSize("large");
+                    Shapes.Circle.setSize("large");
+                   
+                    // Select white on black
+                    Shapes.Shape.color = "grey";
+                    Shapes.Shape.brightness = 255;
+                    backgroundBrightness = 0;
+                    canvas.style.backgroundColor = getBackgroundColor();
+                    
+                    // and draw it if it visible
+                    if (!hidden) {
+                        shape.draw();
+                    }
+                    break;
+                default:
+                    console.log("Command unknown.");
             }
         }
 
@@ -280,7 +318,7 @@ const Rat = (function () {
 
             source.addEventListener("message", messageHandler);
             source.addEventListener("error", (e) => {
-                statusSpan.innerHTML = "<strong>There was an EventSource error!</strong> (check console for details)";
+                statusSpan.innerHTML = `<strong>There was an EventSource error!</strong> ${e}`;
                 console.log("There was an EventSource error:", e);
             });
             attachListeners();

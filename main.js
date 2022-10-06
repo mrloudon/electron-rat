@@ -223,6 +223,9 @@ ipcMain.on("right", () => {
 ipcMain.on("center", () => {
     sendCommand("center");
 });
+ipcMain.on("stim-1", () => {
+    sendCommand("stim-1");
+});
 ipcMain.on("reward", () => {
     sendCommand("reward");
 });

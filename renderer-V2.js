@@ -222,6 +222,17 @@ ipc.on("tap", async (event, data) => {
                 waitingForBreak = true;
                 feedbackAlert.innerHTML = "Success!<br>Waiting for IR break";
                 break;
+            case "mode-monotony-main":
+                clearTimeout(generalTimer);
+                ipc.send("hide");
+                showHidden();
+                updateEventTable("Reward", "Monotony", currentTrial, "Main");
+                if (USE_TABLET) {
+                    await fetch(`${ROUTER_URL}/b`);
+                }
+                waitingForBreak = true;
+                feedbackAlert.innerHTML = "Success!<br>Waiting for IR break";
+                break;
         }
         console.log("Correct tap");
     }
@@ -377,7 +388,7 @@ ipc.on("udp", handleIRBreak);
     
 } */
 
-function setStimulus1(){
+function setStimulus1() {
     for (const btn of shapeBtns) {
         if (btn.innerHTML.toLowerCase() === "circle") {
             btn.style.backgroundColor = ACTIVE_BTN;
@@ -776,24 +787,28 @@ function mode1() {
     mode = "mode-1";
     runBtn.innerHTML = "Start";
     mode123DisableButtons();
+    feedbackAlert.innerHTML = "Phase 1";
 }
 
 function mode2() {
     mode = "mode-2-automatic";
     runBtn.innerHTML = "Start";
     mode123DisableButtons();
+    feedbackAlert.innerHTML = "Phase 2";
 }
 
 function mode3() {
     mode = "mode-3";
     runBtn.innerHTML = "Start";
     mode123DisableButtons();
+    feedbackAlert.innerHTML = "Phase 3";
 }
 
 function modeMonotony() {
     mode = "mode-monotony-initial";
     runBtn.innerHTML = "Start";
     mode123DisableButtons();
+    feedbackAlert.innerHTML = "Monotony";
 }
 
 function modeManual() {
@@ -803,7 +818,7 @@ function modeManual() {
     experimentTimer = setInterval(experimentTimerTimeout, CLOCK_UPDATE);
     updateEventTable("Stimulus", stimulusShape, stimulusColor, stimulusPosition, stimulusSize);
     updateEventTable("Manual");
-    feedbackAlert.innerHTML = "Manual mode";
+    feedbackAlert.innerHTML = "Manual";
 }
 
 function resetUI() {

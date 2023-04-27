@@ -148,6 +148,7 @@ const Rat = (function () {
                 data = JSON.parse(message.data);
             }
             catch (e) {
+                statusSpan.innerHTML = `Bad message from server: ${e.message}`;
                 console.log(e.message);
                 console.log(message);
                 return;
@@ -319,7 +320,12 @@ const Rat = (function () {
 
             source.addEventListener("message", messageHandler);
             source.addEventListener("error", (e) => {
-                statusSpan.innerHTML = `<strong>There was an EventSource error!</strong> ${e}`;
+                if(e.message){
+                    statusSpan.innerHTML = `EventSource error: ${e.message}`;
+                }
+                else{
+                    statusSpan.innerHTML = "An EventSource error occurred while attempting to connect.";
+                }
                 console.log("There was an EventSource error:", e);
             });
             attachListeners();

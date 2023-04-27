@@ -113,7 +113,7 @@ expressApp.get("/events", async function (req, res) {
         "Cache-Control": "no-cache"
     });
     res.flushHeaders();
-    res.write('retry: 10000\n\n');
+    res.write("retry: 1000\n\n");
 
     const clientId = Date.now();
     const newClient = {
@@ -121,7 +121,7 @@ expressApp.get("/events", async function (req, res) {
         res
     }
     clients.push(newClient);
-    console.log("Added new client", clientId);
+    console.log(`Added new client [${clients.length}], ${clientId}`);
     mainWindow.webContents.send("clients", {
         nClients: clients.length,
         message: "New client connected.",

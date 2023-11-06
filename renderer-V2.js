@@ -27,6 +27,9 @@ const PHASE_3_MANUAL_TIME = 20000;
 const MONOTONY_TIMEOUT_TIME = 15000;
 const MONOTONY_MANUAL_TIME = 20000;
 const MONOTONY_REWARD_TIME = 60000;
+const VARIATION_TIMEOUT_TIME = 15000;
+const VARIATION_MANUAL_TIME = 20000;
+const VARIATION_REWARD_TIME = 60000;
 const DEBUG_REWARD_TIME = 1000;
 const DEBUG_PHASE_2_TIMEOUT_TIME = 5000;
 const DEBUG_PHASE_2_MANUAL_TIME = 2000;
@@ -34,6 +37,8 @@ const DEBUG_PHASE_3_TIMEOUT_TIME = 5000;
 const DEBUG_PHASE_3_MANUAL_TIME = 2000;
 const DEBUG_MONOTONY_TIMEOUT_TIME = 5000;
 const DEBUG_MONOTONY_MANUAL_TIME = 2000;
+const DEBUG_VARIATION_TIMEOUT_TIME = 5000;
+const DEBUG_VARIATION_MANUAL_TIME = 2000;
 const REWARD_BTN_DEAD_TIME = 5000;
 
 const hostSpans = document.querySelectorAll(".host-span");
@@ -73,7 +78,7 @@ const param3TD = document.getElementById("param-3-td");
 const param4TD = document.getElementById("param-4-td");
 
 // You need to change this in rat.js as well
-const USE_TABLET = true;
+const USE_TABLET = false;
 
 let mode;
 let currentTrial = 0;
@@ -234,6 +239,29 @@ ipc.on("tap", async (event, data) => {
                 waitingForBreak = true;
                 feedbackAlert.innerHTML = "Success!<br>Waiting for IR break";
                 break;
+            case "mode-variation-initial":
+                clearTimeout(generalTimer);
+                mode = "mode-variation-main";
+                ipc.send("hide");
+                showHidden();
+                updateEventTable("Reward", "Variation", currentTrial, "Initial");
+                if (USE_TABLET) {
+                    await fetch(`${ROUTER_URL}/b`);
+                }
+                waitingForBreak = true;
+                feedbackAlert.innerHTML = "Success!<br>Waiting for IR break";
+                break;
+            case "mode-variation-main":
+                clearTimeout(generalTimer);
+                ipc.send("hide");
+                showHidden();
+                updateEventTable("Reward", "Variation", currentTrial, "Main");
+                if (USE_TABLET) {
+                    await fetch(`${ROUTER_URL}/b`);
+                }
+                waitingForBreak = true;
+                feedbackAlert.innerHTML = "Success!<br>Waiting for IR break";
+                break;
         }
         console.log("Correct tap");
     }
@@ -305,6 +333,15 @@ function handleIRBreak(event, data) {
         }, debugCB.checked ? DEBUG_REWARD_TIME : MONOTONY_REWARD_TIME);
     }
 
+    function handleModeVariationMainBreak() {
+        feedbackAlert.innerHTML = "Delay 60s";
+        updateEventTable("Delay", "Variation", Math.round(VARIATION_REWARD_TIME / 1000.0));
+        generalTimer = setTimeout(() => {
+            updateEventTable("End", "Variation", "Success");
+            doVariationMainTrial();
+        }, debugCB.checked ? DEBUG_REWARD_TIME : VARIATION_REWARD_TIME);
+    }
+
     if (!waitingForBreak) {
         return;
     }
@@ -326,6 +363,9 @@ function handleIRBreak(event, data) {
             break;
         case "mode-monotony-main":
             handleModeMonotonyMainBreak();
+            break;
+        case "mode-variation-main":
+            handleModeVariationMainBreak();
             break;
     }
 
@@ -425,6 +465,98 @@ function setStimulus1() {
 
     ipc.send("stim-1");
 }
+
+function setVariationStimulus() {
+
+    function getRandomItem(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    const parameters = {
+        Shape: ["Circle", "Star", "Block"],
+        Position: ["Left", "Center", "Right"],
+        Color: ["Grey", "Green"],
+        Size: ["Small", "Large"]
+    };
+
+    let newValue;
+    const key = getRandomItem(Object.keys(parameters));
+
+    switch (key) {
+        case "Shape": do {
+            newValue = getRandomItem(parameters.Shape);
+        } while (newValue === stimulusShape);
+            stimulusShape = newValue;
+            break;
+        case "Position": do {
+            newValue = getRandomItem(parameters.Position);
+        } while (newValue === stimulusPosition);
+            stimulusPosition = newValue;
+            break;
+        case "Color": do {
+            newValue = getRandomItem(parameters.Color);
+        } while (newValue === stimulusColor);
+            stimulusColor = newValue;
+            break;
+        case "Size": do {
+            newValue = getRandomItem(parameters.Size);
+        } while (newValue === stimulusSize);
+            stimulusSize = newValue;
+            break;
+    }
+    ipc.send(newValue.toLowerCase());
+    updateEventTable(key, newValue);
+    console.log("Variation", key, newValue);
+}
+
+/* function setVariationStimulus() {
+
+    function getRandomItem(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function capitalise(str) {
+        return str[0].toUpperCase() + str.slice(1);
+    }
+
+    const parameters = {
+        shape: ["circle", "star", "block"],
+        position: ["left", "center", "right"],
+        color: ["grey", "green"],
+        size: ["small", "large"]
+    };
+
+    let newValue;
+    const key = getRandomItem(Object.keys(parameters));
+
+    switch (key) {
+        case "shape": do {
+            newValue = getRandomItem(parameters.shape);
+        } while (newValue === stimulusShape);
+            stimulusShape = capitalise(newValue);
+            break;
+        case "position": do {
+            newValue = getRandomItem(parameters.position);
+        } while (newValue === stimulusPosition);
+            stimulusPosition = capitalise(newValue);
+            break;
+        case "color": do {
+            newValue = getRandomItem(parameters.color);
+        } while (newValue === stimulusColor);
+            stimulusColor = capitalise(newValue);
+            break;
+        case "size": do {
+            newValue = getRandomItem(parameters.size);
+        } while (newValue === stimulusSize);
+            stimulusSize = capitalise(newValue);
+            break;
+    }
+
+    console.log("Variation", capitalise(key), capitalise(newValue));
+
+    ipc.send(newValue);
+    updateEventTable(capitalise(key), capitalise(newValue));
+} */
 
 function shapeBtnClick(event) {
     for (const btn of shapeBtns) {
@@ -689,8 +821,66 @@ function doMonotonyMainTrial() {
     }, debugCB.checked ? DEBUG_MONOTONY_TIMEOUT_TIME : MONOTONY_TIMEOUT_TIME);
 }
 
+function doVariationMainTrial() {
+    console.log("Variation main trial");
+    currentTrial++;
+    setVariationStimulus();
+    ipc.send("show");
+    showVisible();
+    updateEventTable("Show", "Variation", currentTrial);
+    feedbackAlert.innerHTML = `Trial ${currentTrial}`;
+    generalTimer = setTimeout(async function hideStimulusNoReward() {
+        ipc.send("hide");
+        showHidden();
+        updateEventTable("Hide", "Variation", "Main");
+        feedbackAlert.innerHTML = "Time Out";
+        generalTimer = setTimeout(() => {
+            updateEventTable("End", "Variation", "Fail", "Main");
+            doVariationMainTrial();
+        }, debugCB.checked ? DEBUG_VARIATION_MANUAL_TIME : VARIATION_MANUAL_TIME);
+    }, debugCB.checked ? DEBUG_VARIATION_TIMEOUT_TIME : VARIATION_TIMEOUT_TIME);
+}
+
+function doVariationInitialTrial() {
+    console.log("Variation initial trial");
+    currentTrial++;
+
+    ipc.send("circle");
+    stimulusShape = "Circle"
+    updateEventTable("Shape", stimulusShape);
+
+    ipc.send("large");
+    stimulusSize = "Large";
+    updateEventTable("Size", stimulusSize);
+
+    ipc.send("grey");
+    stimulusColor = "Grey";
+    updateEventTable("Colour", stimulusColor);
+
+    ipc.send("center");
+    stimulusPosition = "Center";
+    updateEventTable("Postion", stimulusPosition);
+
+    ipc.send("show");
+    updateEventTable("Show", "Variation", currentTrial);
+
+    showVisible();
+    feedbackAlert.innerHTML = `Trial ${currentTrial}`;
+    generalTimer = setTimeout(async function hideStimulusNoReward() {
+        ipc.send("hide");
+        showHidden();
+        updateEventTable("Hide", "Variation", "Initial");
+        feedbackAlert.innerHTML = "Time Out";
+        generalTimer = setTimeout(() => {
+            updateEventTable("End", "Variation", "Fail", "Initial");
+            doVariationInitialTrial();
+        }, debugCB.checked ? DEBUG_VARIATION_MANUAL_TIME : VARIATION_MANUAL_TIME);
+    }, debugCB.checked ? DEBUG_VARIATION_TIMEOUT_TIME : VARIATION_TIMEOUT_TIME);
+}
+
 async function runBtnClick(event) {
     const target = event.currentTarget;
+    console.log(mode);
     switch (mode) {
         case "mode-1":
             experimentStartTime = Date.now();
@@ -745,6 +935,15 @@ async function runBtnClick(event) {
             updateEventTable("Stimulus", stimulusShape, stimulusColor, stimulusPosition, stimulusSize);
             doMonotonyInitialTrial();
             break;
+        case "mode-variation-initial":
+            target.disabled = true;
+            currentTrial = 0;
+            experimentStartTime = Date.now();
+            experimentTimer = setInterval(experimentTimerTimeout, CLOCK_UPDATE);
+            waitingForBreak = false;
+            updateEventTable("Stimulus", stimulusShape, stimulusColor, stimulusPosition, stimulusSize);
+            doVariationInitialTrial();
+            break;
     }
 }
 
@@ -760,6 +959,8 @@ function modeClick(evt) {
         case "3": mode3();
             break;
         case "4": modeMonotony();
+            break;
+        case "5": modeVariation();
             break;
         case "6": modeManual();
             break;
@@ -810,6 +1011,13 @@ function modeMonotony() {
     runBtn.innerHTML = "Start";
     mode123DisableButtons();
     feedbackAlert.innerHTML = "Monotony";
+}
+
+function modeVariation() {
+    mode = "mode-variation-initial";
+    runBtn.innerHTML = "Start";
+    mode123DisableButtons();
+    feedbackAlert.innerHTML = "Variation";
 }
 
 function modeManual() {

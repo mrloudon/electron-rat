@@ -78,7 +78,7 @@ const param3TD = document.getElementById("param-3-td");
 const param4TD = document.getElementById("param-4-td");
 
 // You need to change this in rat.js as well
-const USE_TABLET = false;
+const USE_TABLET = true;
 
 let mode;
 let currentTrial = 0;

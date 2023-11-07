@@ -873,7 +873,7 @@ function doVariationInitialTrial() {
         feedbackAlert.innerHTML = "Time Out";
         generalTimer = setTimeout(() => {
             updateEventTable("End", "Variation", "Fail", "Initial");
-            doVariationInitialTrial();
+            doVariationMainTrial();
         }, debugCB.checked ? DEBUG_VARIATION_MANUAL_TIME : VARIATION_MANUAL_TIME);
     }, debugCB.checked ? DEBUG_VARIATION_TIMEOUT_TIME : VARIATION_TIMEOUT_TIME);
 }

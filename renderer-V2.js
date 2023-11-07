@@ -855,7 +855,7 @@ function doVariationInitialTrial() {
 
     ipc.send("grey");
     stimulusColor = "Grey";
-    updateEventTable("Colour", stimulusColor);
+    updateEventTable("Color", stimulusColor);
 
     ipc.send("center");
     stimulusPosition = "Center";

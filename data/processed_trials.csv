@@ -1,0 +1,11 @@
+
+Trial,Response Time,Touches,IR Breaks,Success,Start,End,Shape,Colour,Position,Size
+1,None,0,0,False,49,51,Circle,Grey,Center,Large
+2,None,0,0,False,53,55,Block,Grey,Center,Large
+3,1.400000,1,1,True,57,62,Block,Green,Center,Large
+4,None,0,0,False,64,66,Block,Green,Left,Large
+5,None,0,0,False,68,70,Block,Grey,Left,Large
+6,1.600000,1,1,True,72,77,Block,Green,Left,Large
+7,None,0,0,False,79,81,Block,Green,Center,Large
+8,2.400000,1,1,True,83,88,Block,Grey,Center,Large
+9,None,0,0,False,90,92,Block,Grey,Left,Large

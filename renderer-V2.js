@@ -587,7 +587,7 @@ function colorBtnClick(event) {
         case "Grey": ipc.send("grey");
             break;
     }
-    updateEventTable("Colour", stimulusColor);
+    updateEventTable("Color", stimulusColor);
 }
 
 function sizeBtnClick(event) {
@@ -859,7 +859,7 @@ function doVariationInitialTrial() {
 
     ipc.send("center");
     stimulusPosition = "Center";
-    updateEventTable("Postion", stimulusPosition);
+    updateEventTable("Position", stimulusPosition);
 
     ipc.send("show");
     updateEventTable("Show", "Variation", currentTrial);

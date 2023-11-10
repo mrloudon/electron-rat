@@ -78,7 +78,7 @@ const param3TD = document.getElementById("param-3-td");
 const param4TD = document.getElementById("param-4-td");
 
 // You need to change this in rat.js as well
-const USE_TABLET = true;
+const USE_TABLET = false;
 
 let mode;
 let currentTrial = 0;
@@ -92,6 +92,8 @@ let stimulusColor = "green";
 let stimulusShape = "circle";
 let stimulusSize = "small";
 let stimulusPosition = "left";
+
+let variationFirstMainTrial;
 
 function updateEventTable(eventName, param1 = "&#8212;", param2 = "&#8212;", param3 = "&#8212;", param4 = "&#8212;") {
     const timeStamp = (Date.now() - experimentStartTime) / 1000.0;
@@ -428,6 +430,21 @@ ipc.on("udp", handleIRBreak);
     }
     
 } */
+
+function updateParameterBtns(){
+    shapeBtns.forEach(btn => {
+        btn.style.backgroundColor = btn.innerHTML === stimulusShape ? ACTIVE_BTN : INACTIVE_BTN;
+    });
+    positionBtns.forEach(btn => {
+        btn.style.backgroundColor = btn.innerHTML === stimulusPosition ? ACTIVE_BTN : INACTIVE_BTN;
+    });
+    colorBtns.forEach(btn => {
+        btn.style.backgroundColor = btn.innerHTML === stimulusColor ? ACTIVE_BTN : INACTIVE_BTN;
+    });
+    sizeBtns.forEach(btn => {
+        btn.style.backgroundColor = btn.innerHTML === stimulusSize ? ACTIVE_BTN : INACTIVE_BTN;
+    });
+}
 
 function setStimulus1() {
     for (const btn of shapeBtns) {
@@ -824,7 +841,29 @@ function doMonotonyMainTrial() {
 function doVariationMainTrial() {
     console.log("Variation main trial");
     currentTrial++;
-    setVariationStimulus();
+    if (variationFirstMainTrial) {
+        ipc.send("circle");
+        stimulusShape = "Circle"
+        updateEventTable("Shape", stimulusShape);
+
+        ipc.send("large");
+        stimulusSize = "Large";
+        updateEventTable("Size", stimulusSize);
+
+        ipc.send("grey");
+        stimulusColor = "Grey";
+        updateEventTable("Color", stimulusColor);
+
+        ipc.send("center");
+        stimulusPosition = "Center";
+        updateEventTable("Position", stimulusPosition);
+
+        variationFirstMainTrial = false;
+    }
+    else {
+        setVariationStimulus();
+    }
+    updateParameterBtns();
     ipc.send("show");
     showVisible();
     updateEventTable("Show", "Variation", currentTrial);
@@ -845,22 +884,6 @@ function doVariationInitialTrial() {
     console.log("Variation initial trial");
     currentTrial++;
 
-    ipc.send("circle");
-    stimulusShape = "Circle"
-    updateEventTable("Shape", stimulusShape);
-
-    ipc.send("large");
-    stimulusSize = "Large";
-    updateEventTable("Size", stimulusSize);
-
-    ipc.send("grey");
-    stimulusColor = "Grey";
-    updateEventTable("Color", stimulusColor);
-
-    ipc.send("center");
-    stimulusPosition = "Center";
-    updateEventTable("Position", stimulusPosition);
-
     ipc.send("show");
     updateEventTable("Show", "Variation", currentTrial);
 
@@ -873,7 +896,7 @@ function doVariationInitialTrial() {
         feedbackAlert.innerHTML = "Time Out";
         generalTimer = setTimeout(() => {
             updateEventTable("End", "Variation", "Fail", "Initial");
-            doVariationMainTrial();
+            doVariationInitialTrial(); // Repeat initial trial until a success
         }, debugCB.checked ? DEBUG_VARIATION_MANUAL_TIME : VARIATION_MANUAL_TIME);
     }, debugCB.checked ? DEBUG_VARIATION_TIMEOUT_TIME : VARIATION_TIMEOUT_TIME);
 }
@@ -936,6 +959,7 @@ async function runBtnClick(event) {
             doMonotonyInitialTrial();
             break;
         case "mode-variation-initial":
+            variationFirstMainTrial = true;
             target.disabled = true;
             currentTrial = 0;
             experimentStartTime = Date.now();

@@ -25,7 +25,7 @@ const Rat = (function () {
     const ACCEPT_TOUCHES_DEADTIME = 200;
 
     // You need to change this in renderer-V2.js as well
-    const USE_TABLET = false;
+    const USE_TABLET = true;
 
     function run() {
         const source = new EventSource("/events");

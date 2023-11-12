@@ -78,7 +78,7 @@ const param3TD = document.getElementById("param-3-td");
 const param4TD = document.getElementById("param-4-td");
 
 // You need to change this in rat.js as well
-const USE_TABLET = true;
+const USE_TABLET = false;
 
 let mode;
 let currentTrial = 0;
@@ -94,6 +94,7 @@ let stimulusSize = "small";
 let stimulusPosition = "left";
 
 let variationFirstMainTrial;
+let variationSuccessFirstMainTrial;
 
 function updateEventTable(eventName, param1 = "&#8212;", param2 = "&#8212;", param3 = "&#8212;", param4 = "&#8212;") {
     const timeStamp = (Date.now() - experimentStartTime) / 1000.0;
@@ -260,6 +261,9 @@ ipc.on("tap", async (event, data) => {
                 updateEventTable("Reward", "Variation", currentTrial, "Main");
                 if (USE_TABLET) {
                     await fetch(`${ROUTER_URL}/b`);
+                }
+                if (!variationSuccessFirstMainTrial) {
+                    variationSuccessFirstMainTrial = true;
                 }
                 waitingForBreak = true;
                 feedbackAlert.innerHTML = "Success!<br>Waiting for IR break";
@@ -431,7 +435,7 @@ ipc.on("udp", handleIRBreak);
     
 } */
 
-function updateParameterBtns(){
+function updateParameterBtns() {
     shapeBtns.forEach(btn => {
         btn.style.backgroundColor = btn.innerHTML === stimulusShape ? ACTIVE_BTN : INACTIVE_BTN;
     });
@@ -860,7 +864,7 @@ function doVariationMainTrial() {
 
         variationFirstMainTrial = false;
     }
-    else {
+    else if (variationSuccessFirstMainTrial) { // Repeat the first main trial until success
         setVariationStimulus();
     }
     updateParameterBtns();
@@ -960,6 +964,7 @@ async function runBtnClick(event) {
             break;
         case "mode-variation-initial":
             variationFirstMainTrial = true;
+            variationSuccessFirstMainTrial = false;
             target.disabled = true;
             currentTrial = 0;
             experimentStartTime = Date.now();

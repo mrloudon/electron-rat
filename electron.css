@@ -126,6 +126,13 @@ fieldset {
     column-gap: 5px;
 }
 
+.grid-2a-container {
+    display: grid;
+    grid-template-columns: 27% auto;
+    row-gap: 10px;
+    column-gap: 5px;
+}
+
 .grid-3-container {
     display: grid;
     grid-template-columns: auto 40% 40%;

@@ -56,6 +56,7 @@ const allRadioBtns = document.querySelectorAll(".radio-btn");
 const runBtn = document.getElementById("run-btn");
 const manualRewardBtn = document.getElementById("manual-reward-btn");
 const manualIRBtn = document.getElementById("manual-ir-btn");
+const manualSuccessBtn = document.getElementById("manual-success-btn");
 const fileBtn = document.getElementById("file-btn");
 const disconnectBtn = document.getElementById("disconnect-btn");
 const stimulusRange = document.getElementById("stimulusRange");
@@ -127,6 +128,7 @@ function showVisible() {
     visibilityBtns[1].style.backgroundColor = ACTIVE_BTN;
     visibilityAlert.innerHTML = "<h4>Stimulus Visible</h4>";
     visibilityAlert.style.backgroundColor = "#F6F9ED";
+    manualSuccessBtn.disabled = false;
 }
 
 function showHidden() {
@@ -135,6 +137,7 @@ function showHidden() {
     visibilityBtns[1].style.backgroundColor = INACTIVE_BTN;
     visibilityAlert.innerHTML = "<h4>Stimulus Hidden</h4>";
     visibilityAlert.style.backgroundColor = "#FADBD8";
+    manualSuccessBtn.disabled = true;
 }
 
 function experimentTimerTimeout() {
@@ -709,6 +712,103 @@ async function manualRewardBtnClick(event) {
     setTimeout(() => target.disabled = false, REWARD_BTN_DEAD_TIME);
 }
 
+async function manualSuccessBtnClick() {
+
+    updateEventTable("Touch", "X = -1", "Y = -1", "Success", "Manual");
+
+    switch (mode) {
+        case "mode-2-automatic":
+            clearTimeout(generalTimer); // Prevent auto trial
+            mode = "mode-2-manual"; // We have a successful tap. Cease automatic, switch to manual.
+            ipc.send("hide");
+            showHidden();
+            updateEventTable("Reward", "Phase 2", currentTrial, "Automatic");
+            if (USE_TABLET) {
+                await fetch(`${ROUTER_URL}/b`);
+            }
+            waitingForBreak = true;
+            runBtn.innerHTML = "Reward";
+            runBtn.disabled = false;
+            feedbackAlert.innerHTML = "Success!<br>Waiting for IR break";
+            break;
+        case "mode-2-manual":
+            clearTimeout(generalTimer);
+            ipc.send("hide");
+            showHidden();
+            updateEventTable("Reward", "Phase 2", currentTrial, "Manual");
+            if (USE_TABLET) {
+                await fetch(`${ROUTER_URL}/b`);
+            }
+            waitingForBreak = true;
+            feedbackAlert.innerHTML = "Waiting for IR break";
+            break;
+        case "mode-3":
+            clearTimeout(generalTimer);
+            ipc.send("hide");
+            showHidden();
+            updateEventTable("Reward", "Phase 3", currentTrial);
+            if (USE_TABLET) {
+                await fetch(`${ROUTER_URL}/b`);
+            }
+            waitingForBreak = true;
+            feedbackAlert.innerHTML = "Waiting for IR break";
+            break;
+        case "mode-monotony-initial":
+            clearTimeout(generalTimer);
+            mode = "mode-monotony-main";
+            ipc.send("hide");
+            showHidden();
+            setStimulus1();
+            updateEventTable("Reward", "Monotony", currentTrial, "Initial");
+            if (USE_TABLET) {
+                await fetch(`${ROUTER_URL}/b`);
+            }
+            waitingForBreak = true;
+            feedbackAlert.innerHTML = "Success!<br>Waiting for IR break";
+            break;
+        case "mode-monotony-main":
+            clearTimeout(generalTimer);
+            ipc.send("hide");
+            showHidden();
+            updateEventTable("Reward", "Monotony", currentTrial, "Main");
+            if (USE_TABLET) {
+                await fetch(`${ROUTER_URL}/b`);
+            }
+            waitingForBreak = true;
+            feedbackAlert.innerHTML = "Success!<br>Waiting for IR break";
+            break;
+        case "mode-variation-initial":
+            clearTimeout(generalTimer);
+            mode = "mode-variation-main";
+            ipc.send("hide");
+            showHidden();
+            updateEventTable("Reward", "Variation", currentTrial, "Initial");
+            if (USE_TABLET) {
+                await fetch(`${ROUTER_URL}/b`);
+            }
+            waitingForBreak = true;
+            feedbackAlert.innerHTML = "Success!<br>Waiting for IR break";
+            break;
+        case "mode-variation-main":
+            clearTimeout(generalTimer);
+            ipc.send("hide");
+            showHidden();
+            updateEventTable("Reward", "Variation", currentTrial, "Main");
+            if (USE_TABLET) {
+                await fetch(`${ROUTER_URL}/b`);
+            }
+            if (!variationSuccessFirstMainTrial) {
+                variationSuccessFirstMainTrial = true;
+            }
+            waitingForBreak = true;
+            feedbackAlert.innerHTML = "Success!<br>Waiting for IR break";
+            break;
+        default:
+            manualSuccessBtn.disabled = true;
+    }
+    console.log("Correct tap - manual. Mode:", mode);
+}
+
 function attachListeners() {
     for (const btn of shapeBtns) {
         btn.addEventListener("click", shapeBtnClick);
@@ -730,6 +830,7 @@ function attachListeners() {
     }
     runBtn.addEventListener("click", runBtnClick);
     manualRewardBtn.addEventListener("click", manualRewardBtnClick);
+    manualSuccessBtn.addEventListener("click", manualSuccessBtnClick);
     manualIRBtn.addEventListener("click", evt => {
         const btn = evt.currentTarget;
         btn.disabled = true;
